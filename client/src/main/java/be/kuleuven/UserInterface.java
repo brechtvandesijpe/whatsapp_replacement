@@ -4,6 +4,7 @@ import javax.swing.*;
 
 public class UserInterface {
 
+    private JFrame jFrame;
     private JPanel panel;
     private JTextField userListTextField;
     private JTextField usernameTextField;
@@ -14,5 +15,13 @@ public class UserInterface {
     private JButton bumpBackButton;
     private JButton leaveButton;
 
+    public UserInterface() {
+        jFrame = new JFrame();
+        jFrame.setVisible(true);
+      
+    }
 
+    public static void main(String[] args) {
+        UserInterface userInterface = new UserInterface();
+    }
 }

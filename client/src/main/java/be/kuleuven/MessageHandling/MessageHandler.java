@@ -60,6 +60,12 @@ public class MessageHandler {
         bulletinEntry_AB.setSecretKey(SecurityManager.getSymmetricKey(encodedSecretKey, deriveSalt(bulletinEntry_AB.getTag())));
     }
 
+    private byte[] deriveSalt(byte[] tag) {
+        byte[] salt = new byte[256];
+        System.arraycopy(tag, 1, salt, 0, 64);
+        return salt;
+    }
+
     private void postMessageToBulletinBoard(int boxNumber_AB, byte[] hashedMessage, byte[] hashedTag, String message, String contactName) {
         // TODO
     }
