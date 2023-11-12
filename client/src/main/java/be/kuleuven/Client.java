@@ -1,21 +1,26 @@
 package be.kuleuven;
 
-import be.kuleuven.Interfaces.BulletinBoardInterface;
+import be.kuleuven.Instances.*;
+import be.kuleuven.Interfaces.*;
 
-import java.net.MalformedURLException;
-import java.rmi.Naming;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
+import java.net.*;
+import java.rmi.*;
+import java.util.*;
+
 
 public class Client {
 
     public BulletinBoardInterface bulletinBoardInterface;
     private final UserInterface userInterface;
     private String clientName;
+    private final List<Entry> entries_AB;
+    private final List<Entry> entries_BA;
 
     public Client(String clientName, UserInterface userInterface){
         this.clientName = clientName;
         this.userInterface = userInterface;
+        this.entries_AB = new ArrayList<>();
+        this.entries_BA = new ArrayList<>();
     }
 
     public void connectToRMIServer() throws RemoteException {
@@ -26,6 +31,34 @@ public class Client {
             System.err.println("Fout bij verbinden met de RMI-server:");
             e.printStackTrace();
         }
+    }
+
+    public BulletinEntry getBulletEntry_AB_from(String name) {
+        return entries_AB.stream()
+                .filter(entry -> entry.getName().equals(name))
+                .findFirst()
+                .map(Entry::getBulletinEntry)
+                .orElse(null);
+    }
+
+    public BulletinEntry getBulletinEntry_BA_from(String name) {
+        return entries_BA.stream()
+                .filter(entry -> entry.getName().equals(name))
+                .findFirst()
+                .map(Entry::getBulletinEntry)
+                .orElse(null);
+    }
+
+    public UserInterface getUserInterface() {
+        return userInterface;
+    }
+
+    public BulletinBoardInterface getBulletinBoardInterface() {
+        return bulletinBoardInterface;
+    }
+
+    public String getName() {
+        return clientName;
     }
 
 }
