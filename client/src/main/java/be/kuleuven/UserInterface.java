@@ -1,11 +1,12 @@
 package be.kuleuven;
 
 import javax.swing.*;
+import java.rmi.RemoteException;
 
 public class UserInterface extends JFrame{
     // attributes
     private String clientName;
-
+    private Client client;
 
     // javax.swing
     private JPanel panel;
@@ -48,13 +49,27 @@ public class UserInterface extends JFrame{
 
     // ***************** ButtonsClicks ************************
 
-    public void handleJoinButtonClick() {
+    public void handleJoinButtonClick() throws RemoteException {
         clientName = usernameTextField.getText().toLowerCase();
         if(!clientName.isEmpty()) {
             clearUsernameTextField();
             setButtonsEnabled(false, true, true, true, true);
+            start(clientName);
+        }else{
+            showErrorDialog("You forgot to fill in your clientName");
         }
+    }
 
+    public void start(String clientName) throws RemoteException {
+        client = new Client(clientName, this, client.getBulletinBoardInterface());
+        client.connectToRMIServer();
+        System.err.println("Client " + clientName + " is ready to chat.");
+    }
+
+
+
+    public void showErrorDialog(String message) {
+        JOptionPane.showMessageDialog(this, message, "Oopsie Woopsie! Something failed!", JOptionPane.ERROR_MESSAGE);
     }
 
     public void clearUsernameTextField() {

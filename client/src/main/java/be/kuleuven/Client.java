@@ -15,11 +15,13 @@ public class Client {
     private final List<Entry> entries_AB;
     private final List<Entry> entries_BA;
 
-    public Client(String clientName, UserInterface userInterface){
+
+    public Client(String clientName, UserInterface userInterface, BulletinBoardInterface bulletinBoardImpl){
         this.clientName = clientName;
         this.userInterface = userInterface;
         this.entries_AB = new ArrayList<>();
         this.entries_BA = new ArrayList<>();
+        this.bulletinBoardInterface = bulletinBoardImpl;
     }
 
     public void connectToRMIServer() throws RemoteException {
