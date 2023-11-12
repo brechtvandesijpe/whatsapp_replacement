@@ -82,6 +82,9 @@ public class UserInterface extends JFrame{
         }
     }
 
+
+    // *************** HELPER METHODS **************************
+
     public void start(String clientName) throws RemoteException {
         client = new Client(clientName, this, client.getBulletinBoardInterface());
         client.connectToRMIServer();
