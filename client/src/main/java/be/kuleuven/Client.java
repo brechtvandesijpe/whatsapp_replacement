@@ -7,7 +7,6 @@ import java.net.*;
 import java.rmi.*;
 import java.util.*;
 
-
 public class Client {
 
     public BulletinBoardInterface bulletinBoardInterface;
@@ -22,7 +21,6 @@ public class Client {
         this.entries_AB = new ArrayList<>();
         this.entries_BA = new ArrayList<>();
     }
-
 
     public void connectToRMIServer() throws RemoteException {
         try {
