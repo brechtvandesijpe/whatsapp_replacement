@@ -23,9 +23,10 @@ public class Client {
         this.entries_BA = new ArrayList<>();
     }
 
+
     public void connectToRMIServer() throws RemoteException {
         try {
-            bulletinBoardInterface = (BulletinBoardInterface) Naming.lookup("rmi://localhost/groupChat");
+            bulletinBoardInterface = (BulletinBoardInterface) Naming.lookup("rmi://localhost/chat/");
             System.out.println("Verbonden met de RMI-server.\n");
         } catch (RemoteException | NotBoundException | MalformedURLException e) {
             System.err.println("Fout bij verbinden met de RMI-server:");
