@@ -5,9 +5,10 @@ import be.kuleuven.Interfaces.*;
 
 import java.net.*;
 import java.rmi.*;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 
-public class Client {
+public class Client extends UnicastRemoteObject {
 
     public BulletinBoardInterface bulletinBoardInterface;
     private final UserInterface userInterface;
@@ -16,7 +17,9 @@ public class Client {
     private final List<Entry> entries_BA;
 
 
-    public Client(String clientName, UserInterface userInterface, BulletinBoardInterface bulletinBoardImpl){
+
+    public Client(String clientName, UserInterface userInterface, BulletinBoardInterface bulletinBoardImpl) throws RemoteException {
+        super();
         this.clientName = clientName;
         this.userInterface = userInterface;
         this.entries_AB = new ArrayList<>();
@@ -24,7 +27,7 @@ public class Client {
         this.bulletinBoardInterface = bulletinBoardImpl;
     }
 
-    public void connectToRMIServer() throws RemoteException {
+    public void connectToRMIServer() {
         try {
             bulletinBoardInterface = (BulletinBoardInterface) Naming.lookup("rmi://localhost/chat/");
             System.out.println("Verbonden met de RMI-server.\n");
