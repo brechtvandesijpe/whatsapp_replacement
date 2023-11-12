@@ -2,6 +2,7 @@ package be.kuleuven;
 
 import be.kuleuven.Instances.*;
 
+import java.net.MalformedURLException;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.security.*;
@@ -13,16 +14,23 @@ public class BulletinBoardImpl extends UnicastRemoteObject implements BulletinBo
     private static final String HOST_NAME = "localhost";
     // RMI service name
     private static final String SERVICE = "chat";
+    private static final String HASH_ALGORITHM = "SHA-256";
+    private static final int REGISTRY_PORT = 1099;
+
 
     private static Mailbox[] bulletinBoard;
 
     public BulletinBoardImpl() throws RemoteException {
         BulletinBoardImpl.bulletinBoard = new Mailbox[NUM_MAILBOXES];
+        for (int i = 0; i < NUM_MAILBOXES; i++) {
+            bulletinBoard[i] = new Mailbox();
+        }
+        System.out.println("BulletinBoard initialized succesfully.");
     }
 
     @Override
     public byte[] getMessage(int boxNumber, byte[] tag) throws NoSuchAlgorithmException, RemoteException {
-        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        MessageDigest messageDigest = MessageDigest.getInstance(HASH_ALGORITHM);
         byte[] hashedTag = messageDigest.digest(tag);
         Mailbox targetMailbox = BulletinBoardImpl.bulletinBoard[boxNumber];
         return targetMailbox.getMessageByTag(hashedTag);
@@ -42,6 +50,34 @@ public class BulletinBoardImpl extends UnicastRemoteObject implements BulletinBo
     @Override
     public int getAmountOfMailboxes() throws RemoteException {
         return bulletinBoard.length;
+    }
+
+    public static void main(String[] args) {
+        initializeRMIRegistry();
+        startBulletinBoardServer();
+    }
+
+    public static void initializeRMIRegistry() {
+        try {
+            // Create an RMI registry on the specified port
+            java.rmi.registry.LocateRegistry.createRegistry(REGISTRY_PORT);
+            System.out.println("RMI registry has been initialized.");
+        } catch (RemoteException e) {
+            e.printStackTrace();
+            System.err.println("Error occured when initializing BulletinBoardServer");
+        }
+    }
+
+    private static void startBulletinBoardServer() {
+        try {
+            BulletinBoardImpl bulletinBoardImpl = new BulletinBoardImpl();
+            String registry = "rmi://" + BulletinBoardImpl.HOST_NAME + "/" + SERVICE + "/";
+            Naming.rebind(registry, bulletinBoardImpl);
+            System.out.println("Server is running and bound to: " + registry);
+        } catch (RemoteException | MalformedURLException e) {
+            System.err.println("Error occured when starting BulletinBoardServer");
+            e.printStackTrace();
+        }
     }
 
     @Override
