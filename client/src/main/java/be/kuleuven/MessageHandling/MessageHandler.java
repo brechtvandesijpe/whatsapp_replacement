@@ -3,15 +3,10 @@ package be.kuleuven.MessageHandling;
 import be.kuleuven.*;
 import be.kuleuven.Instances.*;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import java.rmi.RemoteException;
-import java.security.InvalidKeyException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
+import javax.crypto.*;
+import java.rmi.*;
+import java.security.*;
+import java.util.*;
 import be.kuleuven.Managers.SecurityManager;
 
 public class MessageHandler {
@@ -41,7 +36,8 @@ public class MessageHandler {
             byte[] hashedMessage = encryptMessage(transformedMessage.getBytes(), bulletinEntry_AB.getSecretKey());
             byte[] hashedTag = hashTag(tag_AB);
 
-            // TODO : afleiden symm & upload nr board
+            deriveAndUpdateSecretKey(bulletinEntry_AB);
+            postMessageToBulletinBoard(boxNumber_AB, hashedMessage, hashedTag, message, contactName);
         }
     }
 
@@ -57,6 +53,15 @@ public class MessageHandler {
 
     private boolean shouldSendMessage(String message) {
         return !message.isEmpty();
+    }
+
+    private void deriveAndUpdateSecretKey(BulletinEntry bulletinEntry_AB) {
+        String encodedSecretKey = Base64.getEncoder().encodeToString(bulletinEntry_AB.getSecretKey().getEncoded());
+        bulletinEntry_AB.setSecretKey(SecurityManager.getSymmetricKey(encodedSecretKey, deriveSalt(bulletinEntry_AB.getTag())));
+    }
+
+    private void postMessageToBulletinBoard(int boxNumber_AB, byte[] hashedMessage, byte[] hashedTag, String message, String contactName) {
+        // TODO
     }
 
     @Override
