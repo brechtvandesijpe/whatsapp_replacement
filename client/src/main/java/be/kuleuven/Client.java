@@ -48,6 +48,43 @@ public class Client {
                 .orElse(null);
     }
 
+    public String transformMessage(String contactName, String message) throws RemoteException {
+        // Generate a random tag
+        String randomTag = generateRandomTag();
+
+        // Get a random mailbox number
+        int newBoxNumber = getRandomMailboxNumber();
+
+        // Update the BulletinEntry for the given friend
+        BulletinEntry bulletinEntry_AB = getBulletEntry_AB_from(contactName);
+        bulletinEntry_AB.setTag(randomTag.getBytes());
+        bulletinEntry_AB.setBoxNumber(newBoxNumber);
+
+        // Build the final message format
+        return randomTag + String.format("%02d", newBoxNumber) + message;
+    }
+
+    private String generateRandomTag() {
+        StringBuilder tagBuilder = new StringBuilder();
+        for (int i = 0; i < 256; i++) {
+            tagBuilder.append(getRandomString());
+        }
+        return tagBuilder.toString();
+    }
+
+    private int getRandomMailboxNumber() throws RemoteException {
+        return (int) (Math.random() * this.bulletinBoardInterface.getAmountOfMailboxes());
+    }
+
+    private static char getRandomString() {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_+=<>?";
+
+        // Kies willekeurig een teken uit de lijst
+        int rnd = (int) (Math.random() * characters.length());
+
+        return characters.charAt(rnd);
+    }
+
     public UserInterface getUserInterface() {
         return userInterface;
     }
