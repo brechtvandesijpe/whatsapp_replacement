@@ -18,7 +18,6 @@ public class BulletinBoardImpl extends UnicastRemoteObject implements BulletinBo
     private static final String HASH_ALGORITHM = "SHA-256";
     private static final int REGISTRY_PORT = 1099;
 
-
     private static Mailbox[] bulletinBoard;
 
     public BulletinBoardImpl() throws RemoteException {

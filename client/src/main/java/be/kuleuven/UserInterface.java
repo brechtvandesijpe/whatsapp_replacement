@@ -57,7 +57,6 @@ public class UserInterface extends JFrame{
         });
     }
 
-
     public void addButtonClickListeners() {
         joinButton.addActionListener(e -> {
                     try {
@@ -88,8 +87,6 @@ public class UserInterface extends JFrame{
         client.connectToRMIServer();
         System.err.println("Client " + clientName + " is ready to chat.");
     }
-
-
 
     public void showErrorDialog(String message) {
         JOptionPane.showMessageDialog(this, message, "Oopsie Woopsie! Something failed!", JOptionPane.ERROR_MESSAGE);

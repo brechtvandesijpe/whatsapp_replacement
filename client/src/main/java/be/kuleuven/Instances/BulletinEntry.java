@@ -7,7 +7,8 @@ public class BulletinEntry {
     private byte[] tag;
     private SecretKey secretKey;
 
-    public BulletinEntry(){}
+    public BulletinEntry() {
+    }
 
     public BulletinEntry(int boxNumber, byte[] tag, SecretKey secretKey) {
         this.boxNumber = boxNumber;

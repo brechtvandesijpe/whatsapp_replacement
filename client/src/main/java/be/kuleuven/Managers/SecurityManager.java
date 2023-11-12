@@ -29,14 +29,16 @@ public class SecurityManager {
         }
     }
 
-    public static byte[] decryptMessage(byte[] encryptedMessageBytes, SecretKey symmetricKey) throws InvalidKeyException,
+    public static byte[] decryptMessage(byte[] encryptedMessageBytes, SecretKey symmetricKey)
+            throws InvalidKeyException,
             NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, symmetricKey);
         return cipher.doFinal(encryptedMessageBytes);
     }
 
-    public static byte[] encryptMessage(byte[] encryptedMessageBytes, SecretKey symmetricKey) throws InvalidKeyException,
+    public static byte[] encryptMessage(byte[] encryptedMessageBytes, SecretKey symmetricKey)
+            throws InvalidKeyException,
             NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, symmetricKey);

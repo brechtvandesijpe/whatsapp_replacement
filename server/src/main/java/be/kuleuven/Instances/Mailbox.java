@@ -7,7 +7,7 @@ public class Mailbox {
     // Map to store messages with tags as keys and message content as values
     private Map<String, byte[]> messageMap;
 
-    public Mailbox(){
+    public Mailbox() {
         this.messageMap = new HashMap<>();
     }
 
@@ -44,6 +44,5 @@ public class Mailbox {
         sb.append("}}");
         return sb.toString();
     }
-
 
 }

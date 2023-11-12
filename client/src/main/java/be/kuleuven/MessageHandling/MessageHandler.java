@@ -25,8 +25,9 @@ public class MessageHandler {
         this.client = client;
     }
 
-    public void sendMessage(String contactName, String message) throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, RemoteException {
-        if(shouldSendMessage(message)){
+    public void sendMessage(String contactName, String message) throws NoSuchAlgorithmException, NoSuchPaddingException,
+            IllegalBlockSizeException, BadPaddingException, InvalidKeyException, RemoteException {
+        if (shouldSendMessage(message)) {
             BulletinEntry bulletinEntry_AB = client.getBulletEntry_AB_from(contactName);
 
             int boxNumber_AB = bulletinEntry_AB.getBoxNumber();
@@ -47,7 +48,8 @@ public class MessageHandler {
         return messageDigest.digest(tag);
     }
 
-    private byte[] encryptMessage(byte[] messageBytes, SecretKey secretKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+    private byte[] encryptMessage(byte[] messageBytes, SecretKey secretKey) throws NoSuchPaddingException,
+            NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
         return SecurityManager.encryptMessage(messageBytes, secretKey);
     }
 
@@ -57,7 +59,8 @@ public class MessageHandler {
 
     private void deriveAndUpdateSecretKey(BulletinEntry bulletinEntry_AB) {
         String encodedSecretKey = Base64.getEncoder().encodeToString(bulletinEntry_AB.getSecretKey().getEncoded());
-        bulletinEntry_AB.setSecretKey(SecurityManager.getSymmetricKey(encodedSecretKey, deriveSalt(bulletinEntry_AB.getTag())));
+        bulletinEntry_AB
+                .setSecretKey(SecurityManager.getSymmetricKey(encodedSecretKey, deriveSalt(bulletinEntry_AB.getTag())));
     }
 
     private byte[] deriveSalt(byte[] tag) {
@@ -66,7 +69,8 @@ public class MessageHandler {
         return salt;
     }
 
-    private void postMessageToBulletinBoard(int boxNumber_AB, byte[] hashedMessage, byte[] hashedTag, String message, String contactName) {
+    private void postMessageToBulletinBoard(int boxNumber_AB, byte[] hashedMessage, byte[] hashedTag, String message,
+            String contactName) {
         // TODO
     }
 

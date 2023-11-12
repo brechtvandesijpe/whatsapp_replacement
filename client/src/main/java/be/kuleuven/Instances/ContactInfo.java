@@ -12,7 +12,8 @@ public class ContactInfo {
     private SecretKey secretKey_AB;
     private SecretKey secretKey_BA;
 
-    public ContactInfo(String contactName, int boxNumber_AB, int boxNumber_BA, byte[] tag_AB, byte[] tag_BA, SecretKey secretKey_AB, SecretKey secretKey_BA){
+    public ContactInfo(String contactName, int boxNumber_AB, int boxNumber_BA, byte[] tag_AB, byte[] tag_BA,
+            SecretKey secretKey_AB, SecretKey secretKey_BA) {
         this.contactName = contactName;
         this.boxNumber_AB = boxNumber_AB;
         this.boxNumber_BA = boxNumber_BA;
