@@ -1,13 +1,14 @@
 package be.kuleuven;
 
 import be.kuleuven.Instances.*;
+import be.kuleuven.Interfaces.BulletinBoardInterface;
 
-import java.net.MalformedURLException;
+import java.net.*;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.security.*;
 
-public class BulletinBoardImpl extends UnicastRemoteObject implements BulletinBoardInterface{
+public class BulletinBoardImpl extends UnicastRemoteObject implements BulletinBoardInterface {
 
     private static final int NUM_MAILBOXES = 64;
     // Host name for the RMI registry
@@ -78,6 +79,14 @@ public class BulletinBoardImpl extends UnicastRemoteObject implements BulletinBo
             System.err.println("Error occured when starting BulletinBoardServer");
             e.printStackTrace();
         }
+    }
+
+    public static Mailbox[] getBulletinBoard() {
+        return bulletinBoard;
+    }
+
+    public static void setBulletinBoard(Mailbox[] bulletinBoard) {
+        BulletinBoardImpl.bulletinBoard = bulletinBoard;
     }
 
     @Override

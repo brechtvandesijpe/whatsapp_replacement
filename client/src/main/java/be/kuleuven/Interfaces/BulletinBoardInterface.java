@@ -1,7 +1,7 @@
-package be.kuleuven;
+package be.kuleuven.Interfaces;
 
-import java.rmi.*;
-import java.security.*;
+import java.rmi.RemoteException;
+import java.security.NoSuchAlgorithmException;
 
 public interface BulletinBoardInterface {
     byte[] getMessage(int boxNumber, byte[] tag) throws NoSuchAlgorithmException, RemoteException;
