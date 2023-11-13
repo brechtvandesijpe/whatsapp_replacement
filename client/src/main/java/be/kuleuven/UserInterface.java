@@ -3,7 +3,7 @@ package be.kuleuven;
 import be.kuleuven.Interfaces.BulletinBoardInterface;
 
 import javax.swing.*;
-import java.rmi.RemoteException;
+import java.rmi.*;
 
 public class UserInterface extends JFrame{
     // attributes
@@ -66,7 +66,11 @@ public class UserInterface extends JFrame{
                     }
                 }
         );
+        bumpButton.addActionListener(e -> {
+            handleBumpButtonClick();
+        });
     }
+
     // ***************** ButtonsClicks ************************
 
     public void handleJoinButtonClick() throws RemoteException {
@@ -80,6 +84,10 @@ public class UserInterface extends JFrame{
             showErrorDialog("You forgot to fill in your clientName");
             statusLabel.setText("You forgot to fill in your name!");
         }
+    }
+
+    public void handleBumpButtonClick() {
+        // QR code? bump?
     }
 
 
@@ -99,12 +107,87 @@ public class UserInterface extends JFrame{
         usernameTextField.setText("");
     }
 
+    public void clearChatArea() {
+        chatArea.setText("");
+    }
     public void setButtonsEnabled(boolean joinButton, boolean leaveButton, boolean bumpButton, boolean bumpBackButton, boolean sendMessageButton) {
         this.joinButton.setEnabled(joinButton);
         this.leaveButton.setEnabled(leaveButton);
         this.bumpButton.setEnabled(bumpButton);
         this.bumpBackButton.setEnabled(bumpBackButton);
         this.sendMessageButton.setEnabled(sendMessageButton);
+    }
+
+
+
+    // ***************** GETTERS *************************
+
+    public String getClientName() {
+        return clientName;
+    }
+
+    public void setClientName(String clientName) {
+        this.clientName = clientName;
+    }
+
+    public Client getClient() {
+        return client;
+    }
+
+    public void setClient(Client client) {
+        this.client = client;
+    }
+
+    public BulletinBoardInterface getBulletinBoardInterface() {
+        return bulletinBoardInterface;
+    }
+
+    public void setBulletinBoardInterface(BulletinBoardInterface bulletinBoardInterface) {
+        this.bulletinBoardInterface = bulletinBoardInterface;
+    }
+
+    public JPanel getPanel() {
+        return panel;
+    }
+
+    public JTextField getUserListTextField() {
+        return userListTextField;
+    }
+
+    public JTextField getUsernameTextField() {
+        return usernameTextField;
+    }
+
+    public JTextArea getChatArea() {
+        return chatArea;
+    }
+
+    public JList getUserList() {
+        return userList;
+    }
+
+    public JButton getJoinButton() {
+        return joinButton;
+    }
+
+    public JButton getBumpButton() {
+        return bumpButton;
+    }
+
+    public JButton getBumpBackButton() {
+        return bumpBackButton;
+    }
+
+    public JButton getLeaveButton() {
+        return leaveButton;
+    }
+
+    public JButton getSendMessageButton() {
+        return sendMessageButton;
+    }
+
+    public JLabel getStatusLabel() {
+        return statusLabel;
     }
 
 }

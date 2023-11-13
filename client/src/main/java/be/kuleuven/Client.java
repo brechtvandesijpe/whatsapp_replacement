@@ -2,20 +2,26 @@ package be.kuleuven;
 
 import be.kuleuven.Instances.*;
 import be.kuleuven.Interfaces.*;
+import be.kuleuven.Managers.*;
+import be.kuleuven.MessageHandling.*;
 
+import javax.crypto.*;
 import java.net.*;
 import java.rmi.*;
-import java.rmi.server.UnicastRemoteObject;
+import java.rmi.server.*;
+import java.security.*;
+import java.security.spec.*;
 import java.util.*;
 
 public class Client extends UnicastRemoteObject {
 
     public BulletinBoardInterface bulletinBoardInterface;
     private final UserInterface userInterface;
-    private String clientName;
+    private final String clientName;
     private final List<Entry> entries_AB;
     private final List<Entry> entries_BA;
-
+    private final MessageHandler messageHandler;
+    private final HistoryManager historyManager;
 
 
     public Client(String clientName, UserInterface userInterface, BulletinBoardInterface bulletinBoardImpl) throws RemoteException {
@@ -25,6 +31,14 @@ public class Client extends UnicastRemoteObject {
         this.entries_AB = new ArrayList<>();
         this.entries_BA = new ArrayList<>();
         this.bulletinBoardInterface = bulletinBoardImpl;
+        this.messageHandler = new MessageHandler(this);
+        this.historyManager = new HistoryManager();
+    }
+
+    public void addContact(ContactInfo contactInfo) {
+        historyManager.initializeContactHistory(contactInfo.getContactName());
+        entries_AB.add(new Entry(contactInfo.getContactName(), new BulletinEntry(contactInfo.getBoxNumber_AB(), contactInfo.getTag_AB(), contactInfo.getSecretKey_AB())));
+        entries_BA.add(new Entry(contactInfo.getContactName(), new BulletinEntry(contactInfo.getBoxNumber_BA(), contactInfo.getTag_BA(), contactInfo.getSecretKey_BA())));
     }
 
     public void connectToRMIServer() {
@@ -51,6 +65,14 @@ public class Client extends UnicastRemoteObject {
                 .findFirst()
                 .map(Entry::getBulletinEntry)
                 .orElse(null);
+    }
+
+    public void getMessagesFrom(String contactName) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, RemoteException {
+        messageHandler.getMessagesFrom(contactName);
+    }
+
+    public void sendMessageTo(String contactName, String message) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, RemoteException, InvalidKeyException {
+        messageHandler.sendMessage(contactName, message);
     }
 
     public String transformMessage(String contactName, String message) throws RemoteException {
@@ -102,4 +124,23 @@ public class Client extends UnicastRemoteObject {
         return clientName;
     }
 
+    public String getClientName() {
+        return clientName;
+    }
+
+    public List<Entry> getEntries_AB() {
+        return entries_AB;
+    }
+
+    public List<Entry> getEntries_BA() {
+        return entries_BA;
+    }
+
+    public MessageHandler getMessageHandler() {
+        return messageHandler;
+    }
+
+    public HistoryManager getHistoryManager() {
+        return historyManager;
+    }
 }

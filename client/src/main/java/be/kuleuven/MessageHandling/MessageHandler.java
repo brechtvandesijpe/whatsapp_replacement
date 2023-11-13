@@ -6,11 +6,16 @@ import be.kuleuven.Instances.*;
 import javax.crypto.*;
 import java.rmi.*;
 import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import be.kuleuven.Managers.SecurityManager;
 
 public class MessageHandler {
     private Client client;
+    private static final int TAG_SUBSTRING_START = 0;
+    private static final int TAG_SUBSTRING_END = 256;
+    private static final int BOX_NUMBER_SUBSTRING_START = 256;
+    private static final int BOX_NUMBER_SUBSTRING_END = 258;
     private static final String HASH_ALGORITHM = "SHA-256";
 
     public MessageHandler(Client client) {
@@ -69,9 +74,48 @@ public class MessageHandler {
         return salt;
     }
 
-    private void postMessageToBulletinBoard(int boxNumber_AB, byte[] hashedMessage, byte[] hashedTag, String message,
-            String contactName) {
-        // TODO
+    private void postMessageToBulletinBoard(int boxNumber_AB, byte[] hashedMessage, byte[] hashedTag, String message, String contactName) {
+        try {
+            client.getBulletinBoardInterface().postMessage(boxNumber_AB, hashedMessage, hashedTag);
+
+            String formattedMessage = String.format("[%s]: %s\n", client.getName(), message);
+            client.getUserInterface().getChatArea().append(formattedMessage);
+            client.getUserInterface().getChatArea().setCaretPosition(client.getUserInterface().getChatArea().getDocument().getLength());
+
+            List<String> messageHistory = client.getHistoryManager().getMessageHistory().get(contactName);
+            messageHistory.add(formattedMessage);
+        } catch (RemoteException e) {
+            System.err.println("Error posting message to bulletin board: " + e.getMessage());
+        }
+    }
+
+    public void getMessagesFrom(String contactName) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, RemoteException {
+        BulletinEntry bulletinEntry_BA = client.getBulletinEntry_BA_from(contactName);
+        byte[] currentMessage  = client.getBulletinBoardInterface().getMessage(bulletinEntry_BA.getBoxNumber(), bulletinEntry_BA.getTag());
+        while (currentMessage != null) {
+            processReceivedMessage(contactName, bulletinEntry_BA, currentMessage);
+            currentMessage  = client.getBulletinBoardInterface().getMessage(bulletinEntry_BA.getBoxNumber(), bulletinEntry_BA.getTag());
+        }
+    }
+
+    private void processReceivedMessage(String name, BulletinEntry bulletinEntry_BA, byte[] thisMessage) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
+
+        String newMessage = new String(SecurityManager.decryptMessage(thisMessage, bulletinEntry_BA.getSecretKey()));
+
+        // Extraheren van de tag van index 0 tot 32 (32 bytes)
+        byte[] tag_BA = newMessage.substring(TAG_SUBSTRING_START, TAG_SUBSTRING_END).getBytes();
+        int boxNumber_BA = Integer.parseInt(newMessage.substring(BOX_NUMBER_SUBSTRING_START, BOX_NUMBER_SUBSTRING_END));
+        String message = newMessage.substring(BOX_NUMBER_SUBSTRING_END);
+
+        bulletinEntry_BA.setTag(tag_BA);
+        bulletinEntry_BA.setBoxNumber(boxNumber_BA);
+
+        bulletinEntry_BA.setSecretKey(SecurityManager.getSymmetricKey(Base64.getEncoder().encodeToString(bulletinEntry_BA.getSecretKey().getEncoded()), deriveSalt(tag_BA)));
+
+        client.getUserInterface().getChatArea().append("[" + name + "]: " + message + " \n");
+        client.getUserInterface().getChatArea().setCaretPosition(client.getUserInterface().getChatArea().getDocument().getLength());
+        client.getHistoryManager().getMessageHistory().get(name).add("[" + name + "]: " + message + " \n");
+        System.out.println("{name: " + name + ", boxNumber: " + bulletinEntry_BA.getBoxNumber() + "}");
     }
 
     @Override
