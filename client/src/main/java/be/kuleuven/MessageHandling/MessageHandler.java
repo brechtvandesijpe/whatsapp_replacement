@@ -64,8 +64,8 @@ public class MessageHandler {
 
     private void deriveAndUpdateSecretKey(BulletinEntry bulletinEntry_AB) {
         String encodedSecretKey = Base64.getEncoder().encodeToString(bulletinEntry_AB.getSecretKey().getEncoded());
-        bulletinEntry_AB
-                .setSecretKey(SecurityManager.getSymmetricKey(encodedSecretKey, deriveSalt(bulletinEntry_AB.getTag())));
+        bulletinEntry_AB.setSecretKey(SecurityManager.getSymmetricKey(encodedSecretKey, deriveSalt(bulletinEntry_AB.getTag())));
+        System.out.println("Nieuwe SecretKey: " + encodedSecretKey);
     }
 
     private byte[] deriveSalt(byte[] tag) {

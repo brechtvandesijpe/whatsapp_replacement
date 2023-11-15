@@ -1,20 +1,33 @@
 package be.kuleuven;
 
-import be.kuleuven.Interfaces.BulletinBoardInterface;
-import be.kuleuven.Util.RandomStringGenerator;
+import be.kuleuven.Interfaces.*;
+import be.kuleuven.Managers.SecurityManager;
+import be.kuleuven.Util.*;
 
+import javax.crypto.*;
 import javax.swing.*;
 import java.rmi.*;
 
 public class UserInterface extends JFrame{
     // attributes
     private String clientName;
+    private AppState currentState = AppState.DEFAULT;
     private Client client;
     private BulletinBoardInterface bulletinBoardInterface;
     private String bumpString;
+    private String passphrase;
+
+
+    private int boxNumber_AB;
+    private int boxNumber_BA;
+    private byte[] tag_AB;
+    private byte[] tagBA;
+    private SecretKey secretKey_AB;
+    private SecretKey secretKey_BA;
+
     // javax.swing
     private JPanel panel;
-    private JTextField userListTextField;
+    private JTextField messageTextField;
     private JTextField usernameTextField;
     private JTextArea chatArea;
     private JList userList;
@@ -24,6 +37,8 @@ public class UserInterface extends JFrame{
     private JButton leaveButton;
     private JButton sendMessageButton;
     private JLabel statusLabel;
+
+
 
     public UserInterface(String title) throws RemoteException {
         super(title);
@@ -35,7 +50,7 @@ public class UserInterface extends JFrame{
     }
 
     public void setAllComponentsVisible() {
-        userListTextField.setVisible(true);
+        messageTextField.setVisible(true);
         usernameTextField.setVisible(true);
         chatArea.setVisible(true);
         userList.setVisible(true);
@@ -71,6 +86,10 @@ public class UserInterface extends JFrame{
         bumpButton.addActionListener(e -> {
             handleBumpButtonClick();
         });
+
+        sendMessageButton.addActionListener( e -> {
+            handleSendMessageButtonClick();
+        });
     }
 
     // ***************** ButtonsClicks ************************
@@ -92,10 +111,32 @@ public class UserInterface extends JFrame{
         userList.clearSelection();
         generateBumpString();
         clearChatArea();
-        showInChatArea("Here's the unique bump string for you and your friend: [" + bumpString + "], enter your chosen passphrase to initiate the contact" + "\n");
+        showInChatArea("Here's the unique bump string for you and your friend: [" + bumpString + "], enter a chosen passphrase to initiate the contact" + "\n");
         statusLabel.setText("Bump Action");
         System.out.println("Client " + clientName + " started a bump action.");
+        currentState = AppState.PASSPHRASE;
     }
+
+    public void handleSendMessageButtonClick() {
+        if(!messageTextField.getText().isEmpty()) {
+            switch (currentState) {
+                case PASSPHRASE:
+                    handleSMB_passphrase();
+                    break;
+                case DEFAULT:
+                    System.out.println("default");
+                    break;
+            }
+        }
+    }
+
+
+    public void handleSMB_passphrase() {
+        passphrase = messageTextField.getText();
+
+        // TODO box, tag, key fixen
+    }
+
 
 
     // *************** HELPER METHODS **************************
@@ -168,7 +209,7 @@ public class UserInterface extends JFrame{
     }
 
     public JTextField getUserListTextField() {
-        return userListTextField;
+        return messageTextField;
     }
 
     public JTextField getUsernameTextField() {
