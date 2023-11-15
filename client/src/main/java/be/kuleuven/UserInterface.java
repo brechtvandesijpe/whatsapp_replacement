@@ -88,7 +88,11 @@ public class UserInterface extends JFrame{
         });
 
         sendMessageButton.addActionListener( e -> {
-            handleSendMessageButtonClick();
+            try {
+                handleSendMessageButtonClick();
+            } catch (RemoteException ex) {
+                throw new RuntimeException(ex);
+            }
         });
     }
 
@@ -117,7 +121,7 @@ public class UserInterface extends JFrame{
         currentState = AppState.PASSPHRASE;
     }
 
-    public void handleSendMessageButtonClick() {
+    public void handleSendMessageButtonClick() throws RemoteException {
         if(!messageTextField.getText().isEmpty()) {
             switch (currentState) {
                 case PASSPHRASE:
@@ -131,10 +135,19 @@ public class UserInterface extends JFrame{
     }
 
 
-    public void handleSMB_passphrase() {
+    public void handleSMB_passphrase() throws RemoteException {
         passphrase = messageTextField.getText();
 
-        // TODO box, tag, key fixen
+        /*
+        Initially (at the same time they also exchange the necessary cryptographic
+        keys) they agree on a tag and the index of the first cell to use.
+         */
+
+        // De eerste wordt afgeleid uit common parameter passphrase, alle volgende boxes/tags zijn random
+        boxNumber_AB = Math.abs(RandomStringGenerator.convert(passphrase)) % client.getBulletinBoardInterface().getAmountOfMailboxes();
+        boxNumber_BA = Math.abs(RandomStringGenerator.convert(new StringBuilder(passphrase).reverse().toString())) % client.getBulletinBoardInterface().getAmountOfMailboxes();
+
+        // TODO TAG ENZO
     }
 
 
