@@ -1,6 +1,7 @@
 package be.kuleuven;
 
 import be.kuleuven.Interfaces.BulletinBoardInterface;
+import be.kuleuven.Util.RandomStringGenerator;
 
 import javax.swing.*;
 import java.rmi.*;
@@ -10,6 +11,7 @@ public class UserInterface extends JFrame{
     private String clientName;
     private Client client;
     private BulletinBoardInterface bulletinBoardInterface;
+    private String bumpString;
     // javax.swing
     private JPanel panel;
     private JTextField userListTextField;
@@ -79,7 +81,7 @@ public class UserInterface extends JFrame{
             clearUsernameTextField();
             setButtonsEnabled(false, true, true, true, true);
             start(clientName);
-            statusLabel.setText("You successfully join as " + clientName);
+            statusLabel.setText("You successfully joined as " + clientName);
         }else{
             showErrorDialog("You forgot to fill in your clientName");
             statusLabel.setText("You forgot to fill in your name!");
@@ -87,7 +89,12 @@ public class UserInterface extends JFrame{
     }
 
     public void handleBumpButtonClick() {
-        // QR code? bump?
+        userList.clearSelection();
+        generateBumpString();
+        clearChatArea();
+        showInChatArea("Here's the unique bump string for you and your friend: [" + bumpString + "], enter your chosen passphrase to initiate the contact" + "\n");
+        statusLabel.setText("Bump Action");
+        System.out.println("Client " + clientName + " started a bump action.");
     }
 
 
@@ -110,12 +117,22 @@ public class UserInterface extends JFrame{
     public void clearChatArea() {
         chatArea.setText("");
     }
+
+    public void showInChatArea(String message) {
+        chatArea.append(message);
+        chatArea.append("\n");
+    }
+
     public void setButtonsEnabled(boolean joinButton, boolean leaveButton, boolean bumpButton, boolean bumpBackButton, boolean sendMessageButton) {
         this.joinButton.setEnabled(joinButton);
         this.leaveButton.setEnabled(leaveButton);
         this.bumpButton.setEnabled(bumpButton);
         this.bumpBackButton.setEnabled(bumpBackButton);
         this.sendMessageButton.setEnabled(sendMessageButton);
+    }
+
+    public void generateBumpString() {
+        bumpString = RandomStringGenerator.generateRandomString(10);
     }
 
 
@@ -190,4 +207,11 @@ public class UserInterface extends JFrame{
         return statusLabel;
     }
 
+    public String getBumpString() {
+        return bumpString;
+    }
+
+    public void setBumpString(String bumpString) {
+        this.bumpString = bumpString;
+    }
 }
