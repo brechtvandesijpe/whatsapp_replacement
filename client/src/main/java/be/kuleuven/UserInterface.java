@@ -1,5 +1,6 @@
 package be.kuleuven;
 
+import be.kuleuven.Instances.ContactInfo;
 import be.kuleuven.Interfaces.*;
 import be.kuleuven.Managers.SecurityManager;
 import be.kuleuven.Util.*;
@@ -21,9 +22,10 @@ public class UserInterface extends JFrame{
     private int boxNumber_AB;
     private int boxNumber_BA;
     private byte[] tag_AB;
-    private byte[] tagBA;
+    private byte[] tag_BA;
     private SecretKey secretKey_AB;
     private SecretKey secretKey_BA;
+    private DefaultListModel<String> contactList;
 
     // javax.swing
     private JPanel panel;
@@ -127,6 +129,8 @@ public class UserInterface extends JFrame{
                 case PASSPHRASE:
                     handleSMB_passphrase();
                     break;
+                case CONTACTNAME:
+                    handleSMB_contactName();
                 case DEFAULT:
                     System.out.println("default");
                     break;
@@ -134,23 +138,27 @@ public class UserInterface extends JFrame{
         }
     }
 
-
+    // Initially (at the same time they also exchange the necessary cryptographic
+    // keys) they agree on a tag and the index of the first cell to use.
     public void handleSMB_passphrase() throws RemoteException {
         passphrase = messageTextField.getText();
-
-        /*
-        Initially (at the same time they also exchange the necessary cryptographic
-        keys) they agree on a tag and the index of the first cell to use.
-         */
-
-        // De eerste wordt afgeleid uit common parameter passphrase, alle volgende boxes/tags zijn random
-        boxNumber_AB = Math.abs(RandomStringGenerator.convert(passphrase)) % client.getBulletinBoardInterface().getAmountOfMailboxes();
-        boxNumber_BA = Math.abs(RandomStringGenerator.convert(new StringBuilder(passphrase).reverse().toString())) % client.getBulletinBoardInterface().getAmountOfMailboxes();
-
-        // TODO TAG ENZO
+        setInitialBoxNumbers(passphrase, true);
+        setInitialTags(true);
+        setInitialKeys(true);
+        clearMessageTextField();
+        showInChatArea("With what name do you want to save that client in your contactlist?");
+        currentState = AppState.CONTACTNAME;
     }
 
-
+    public void handleSMB_contactName() {
+        String contactName = messageTextField.getText();
+        contactList.addElement(contactName);
+        clearChatArea();
+        clearMessageTextField();
+        client.addContact(new ContactInfo(contactName, boxNumber_AB, boxNumber_BA, tag_AB, tag_BA, secretKey_AB, secretKey_BA));
+        resetContactInfo();
+        currentState = AppState.DEFAULT;
+    }
 
     // *************** HELPER METHODS **************************
 
@@ -172,6 +180,10 @@ public class UserInterface extends JFrame{
         chatArea.setText("");
     }
 
+    public void clearMessageTextField() {
+        messageTextField.setText("");
+    }
+
     public void showInChatArea(String message) {
         chatArea.append(message);
         chatArea.append("\n");
@@ -189,7 +201,47 @@ public class UserInterface extends JFrame{
         bumpString = RandomStringGenerator.generateRandomString(10);
     }
 
+    public void setInitialBoxNumbers(String passphrase, boolean isInitiator) throws RemoteException {
+        // De eerste boxnumbers worden afgeleid uit common parameter passphrase, alle volgende boxenumbers zijn random
+        if(isInitiator) {
+            boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(passphrase)) % client.getBulletinBoardInterface().getAmountOfMailboxes();
+            boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(passphrase).reverse().toString())) % client.getBulletinBoardInterface().getAmountOfMailboxes();
+        } else{
+            boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(passphrase)) % client.getBulletinBoardInterface().getAmountOfMailboxes();
+            boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(passphrase).reverse().toString())) % client.getBulletinBoardInterface().getAmountOfMailboxes();
+        }
+    }
 
+    public void setInitialTags(boolean isInitiator) {
+        // De eerste tags worden afgeleid uit common parameter passphrase, alle volgende tags zijn random
+        if(isInitiator) {
+            tag_AB = RandomStringGenerator.deriveBytesFromPassphrase(passphrase);
+            tag_BA = RandomStringGenerator.deriveBytesFromPassphrase(new StringBuilder(passphrase).reverse().toString());
+        }else{
+            tag_BA = RandomStringGenerator.deriveBytesFromPassphrase(passphrase);
+            tag_AB = RandomStringGenerator.deriveBytesFromPassphrase(new StringBuilder(passphrase).reverse().toString());
+        }
+    }
+
+    public void setInitialKeys(boolean isInitiator) {
+        // De tags worden als salt meegegeven, maar kan eender wat zijn
+        if(isInitiator) {
+            secretKey_AB = SecurityManager.getSymmetricKey(passphrase, tag_AB);
+            secretKey_BA = SecurityManager.getSymmetricKey(passphrase, tag_BA);
+        }else{
+            secretKey_BA = SecurityManager.getSymmetricKey(passphrase, tag_AB);
+            secretKey_AB = SecurityManager.getSymmetricKey(passphrase, tag_BA);
+        }
+    }
+
+    public void resetContactInfo() {
+        secretKey_AB = null;
+        secretKey_BA = null;
+        boxNumber_AB = Integer.MIN_VALUE;
+        boxNumber_BA = Integer.MIN_VALUE;
+        tag_AB = null;
+        tag_BA = null;
+    }
 
     // ***************** GETTERS *************************
 
