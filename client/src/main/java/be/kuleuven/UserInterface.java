@@ -49,6 +49,7 @@ public class UserInterface extends JFrame{
         setAllComponentsVisible();
         addButtonClickListeners();
         client = new Client(clientName, this, bulletinBoardInterface);
+        contactList = new DefaultListModel<>();
     }
 
     public void setAllComponentsVisible() {
