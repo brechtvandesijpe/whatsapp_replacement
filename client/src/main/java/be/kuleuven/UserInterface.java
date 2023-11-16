@@ -3,17 +3,23 @@ package be.kuleuven;
 import be.kuleuven.Instances.ContactInfo;
 import be.kuleuven.Interfaces.*;
 import be.kuleuven.Managers.SecurityManager;
+import be.kuleuven.MessageHandling.PeriodicMessageFetcher;
 import be.kuleuven.Util.*;
 
 import javax.crypto.*;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
+import java.awt.*;
 import java.rmi.*;
-import java.util.List;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
 
 public class UserInterface extends JFrame{
     // attributes
     private String clientName;
+    private PeriodicMessageFetcher messageFetcherTask;
     private AppState currentState = AppState.DEFAULT;
     private Client client;
     private BulletinBoardInterface bulletinBoardInterface;
@@ -34,26 +40,29 @@ public class UserInterface extends JFrame{
     private JTextField messageTextField;
     private JTextField usernameTextField;
     private JTextArea chatArea;
-    private JList userList;
+    private JList<String> userList;
     private JButton joinButton;
     private JButton bumpButton;
     private JButton bumpBackButton;
     private JButton leaveButton;
     private JButton sendMessageButton;
     private JLabel statusLabel;
-
-
+    private JLabel username_header;
+    private JPanel panel2;
+    private JScrollPane jscrollpane;
 
     public UserInterface(String title) throws RemoteException {
         super(title);
         contactListModel = new DefaultListModel<>();
         userList = new JList<>(contactListModel);
         userList.addListSelectionListener(this::handleListSelectionChange);
+        jscrollpane.setViewportView(userList);
         setSize(1280,720);
         setContentPane(panel);
         setAllComponentsVisible();
         addButtonClickListeners();
         client = new Client(clientName, this, bulletinBoardInterface);
+        messageTextField.requestFocus();
     }
 
     public void setAllComponentsVisible() {
@@ -67,6 +76,7 @@ public class UserInterface extends JFrame{
         leaveButton.setVisible(true);
         sendMessageButton.setVisible(true);
         statusLabel.setVisible(true);
+        panel2.setVisible(true);
     }
 
     public static void main(String[] args) {
@@ -90,17 +100,18 @@ public class UserInterface extends JFrame{
                     }
                 }
         );
-        bumpButton.addActionListener(e -> {
-            handleBumpButtonClick();
-        });
+        bumpButton.addActionListener(e -> handleBumpButtonClick());
 
         sendMessageButton.addActionListener( e -> {
             try {
                 handleSendMessageButtonClick();
-            } catch (RemoteException ex) {
+            } catch (RemoteException | IllegalBlockSizeException | NoSuchPaddingException | BadPaddingException |
+                     NoSuchAlgorithmException | InvalidKeySpecException | InvalidKeyException ex) {
                 throw new RuntimeException(ex);
             }
         });
+
+        bumpBackButton.addActionListener(e -> handleBumpBackButtonClick());
     }
 
     // ***************** ButtonsClicks ************************
@@ -108,10 +119,13 @@ public class UserInterface extends JFrame{
     public void handleJoinButtonClick() throws RemoteException {
         clientName = usernameTextField.getText().toLowerCase();
         if(!clientName.isEmpty()) {
+            username_header.setText("Client of " + clientName);
             clearUsernameTextField();
             setButtonsEnabled(false, true, true, true, true);
             start(clientName);
             statusLabel.setText("You successfully joined as " + clientName);
+            messageFetcherTask = new PeriodicMessageFetcher(client);
+            messageFetcherTask.startPeriodicMessageFetching();
         }else{
             showErrorDialog("You forgot to fill in your clientName");
             statusLabel.setText("You forgot to fill in your name!");
@@ -125,17 +139,19 @@ public class UserInterface extends JFrame{
         showInChatArea("Here's the unique bump string for you and your contact: [" + bumpString + "], enter a chosen passphrase to initiate the contact" + "\n");
         statusLabel.setText("Bump Action");
         System.out.println("Client " + clientName + " started a bump action.");
-        currentState = AppState.PASSPHRASE_BB;
+        currentState = AppState.PASSPHRASE;
     }
 
     public void handleBumpBackButtonClick() {
-        clearChatArea();
         userList.clearSelection();
-        currentState = AppState.PASSPHRASE_BB;
+        clearChatArea();
         showInChatArea("Fill in the bump string of you and your contact:");
+        statusLabel.setText("Bump Back Action");
+        System.out.println("Client " + clientName + " started a bump-back action.");
+        currentState = AppState.BUMPSTRING_BB;
     }
 
-    public void handleSendMessageButtonClick() throws RemoteException {
+    public void handleSendMessageButtonClick() throws RemoteException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
         if(!messageTextField.getText().isEmpty()) {
             switch (currentState) {
                 case PASSPHRASE:
@@ -143,10 +159,14 @@ public class UserInterface extends JFrame{
                     break;
                 case CONTACTNAME:
                     handleSMB_contactName();
+                    break;
                 case PASSPHRASE_BB:
                     handleSMB_passphrase_bb();
+                    break;
+                case BUMPSTRING_BB:
+                    handleSMB_bumpstring_bb();
                 case DEFAULT:
-                    System.out.println("default");
+                    handleSMB_default();
                     break;
             }
         }
@@ -161,31 +181,57 @@ public class UserInterface extends JFrame{
         setInitialKeys(true);
         clearMessageTextField();
         showInChatArea("With what name do you want to save that client in your contactlist?");
+        statusLabel.setText("Filled In passphrase as B");
         currentState = AppState.CONTACTNAME;
     }
 
     public void handleSMB_passphrase_bb() throws RemoteException {
         passphrase_BB = messageTextField.getText();
-        setInitialBoxNumbers(passphrase, false);
+        clearMessageTextField();
+        // TODO
+        setInitialBoxNumbers(passphrase_BB, false);
         setInitialTags(false);
         setInitialKeys(false);
-        clearMessageTextField();
         showInChatArea("With what name do you want to save that client in your contactlist?");
+        statusLabel.setText("Filled In passphrase as BB");
         currentState = AppState.CONTACTNAME;
     }
+
+    public void handleSMB_bumpstring_bb() {
+        clearChatArea();
+        userList.clearSelection();
+        clearMessageTextField();
+        showInChatArea("Fill in the passphrase of you and your contact");;
+        currentState = AppState.PASSPHRASE_BB;
+    }
+
 
     public void handleSMB_contactName() {
         String contactName = messageTextField.getText();
         contactListModel.addElement(contactName);
+        System.out.println("Nieuw ContactListModel: " + contactListModel);
+        //userList.revalidate(); // new
+        //userList.repaint(); // new
+        userList.setSelectedIndex(contactListModel.indexOf(contactName));
         clearChatArea();
         clearMessageTextField();
         client.addContact(new ContactInfo(contactName, boxNumber_AB, boxNumber_BA, tag_AB, tag_BA, secretKey_AB, secretKey_BA));
         resetContactInfo();
         currentState = AppState.DEFAULT;
+        statusLabel.setText("Filled In Contactname");
     }
 
 
 
+    public void handleSMB_default() throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, RemoteException, InvalidKeyException {
+        int index = userList.getSelectedIndex();
+        if (index != -1) {
+            String message = messageTextField.getText();
+            sendMessage(message, contactListModel.getElementAt(index));
+        }
+        clearMessageTextField();
+
+    }
 
     // *************** HELPER METHODS **************************
 
@@ -233,9 +279,11 @@ public class UserInterface extends JFrame{
         if(isInitiator) {
             boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(passphrase)) % client.getBulletinBoardInterface().getAmountOfMailboxes();
             boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(passphrase).reverse().toString())) % client.getBulletinBoardInterface().getAmountOfMailboxes();
+            System.out.println("AB: " + boxNumber_AB + ", BA: " + boxNumber_BA);
         } else{
             boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(passphrase)) % client.getBulletinBoardInterface().getAmountOfMailboxes();
             boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(passphrase).reverse().toString())) % client.getBulletinBoardInterface().getAmountOfMailboxes();
+            System.out.println("AB: " + boxNumber_AB + ", BA: " + boxNumber_BA);
         }
     }
 
@@ -244,20 +292,26 @@ public class UserInterface extends JFrame{
         if(isInitiator) {
             tag_AB = RandomStringGenerator.deriveBytesFromPassphrase(passphrase);
             tag_BA = RandomStringGenerator.deriveBytesFromPassphrase(new StringBuilder(passphrase).reverse().toString());
+            System.out.println("tag_AB: " + new String(tag_AB) + ", " + new String(tag_BA));
         }else{
-            tag_BA = RandomStringGenerator.deriveBytesFromPassphrase(passphrase);
-            tag_AB = RandomStringGenerator.deriveBytesFromPassphrase(new StringBuilder(passphrase).reverse().toString());
+            // TODO GEEN IDEE OF DIT PASSPHRASE MOET ZIJN OF PASSPHRASE_BB
+            tag_BA = RandomStringGenerator.deriveBytesFromPassphrase(passphrase_BB);
+            tag_AB = RandomStringGenerator.deriveBytesFromPassphrase(new StringBuilder(passphrase_BB).reverse().toString());
+            System.out.println("tag_AB: " + new String(tag_AB) + ", " + new String(tag_BA));
         }
     }
 
     public void setInitialKeys(boolean isInitiator) {
         // De tags worden als salt meegegeven, maar kan eender wat zijn
         if(isInitiator) {
+            System.out.println("Passphrase: " + passphrase);
             secretKey_AB = SecurityManager.getSymmetricKey(passphrase, tag_AB);
             secretKey_BA = SecurityManager.getSymmetricKey(passphrase, tag_BA);
         }else{
-            secretKey_BA = SecurityManager.getSymmetricKey(passphrase, tag_AB);
-            secretKey_AB = SecurityManager.getSymmetricKey(passphrase, tag_BA);
+            // TODO GEEN IDEE OF DIT PASSPHRASE MOET ZIJN OF PASSPHRASE_BB
+            System.out.println("Passphrase_BB: " + passphrase_BB);
+            secretKey_BA = SecurityManager.getSymmetricKey(passphrase_BB, tag_AB);
+            secretKey_AB = SecurityManager.getSymmetricKey(passphrase_BB, tag_BA);
         }
     }
 
@@ -271,8 +325,10 @@ public class UserInterface extends JFrame{
     }
 
     public void handleListSelectionChange(ListSelectionEvent listSelectionEvent) {
+        System.out.println("Userlist: " + userList.getSize());
         if (!userList.getValueIsAdjusting()) return;
         clearChatArea();
+        System.out.println("contactListModel" + contactListModel);
         int maxSelectionIndex = userList.getMaxSelectionIndex();
         if (maxSelectionIndex != -1) {
             client.getHistoryManager().getMessageHistory().get(contactListModel.getElementAt(maxSelectionIndex)).forEach(message -> chatArea.append(message));
@@ -290,7 +346,15 @@ public class UserInterface extends JFrame{
         return userList.getSelectedIndices();
     }
 
+    public void disconnect() {
+        messageFetcherTask.stopTimer();
+        System.exit(-1);
+        System.out.println("Client " + clientName + " successfully disconnected.");
+    }
 
+    private void sendMessage(String message, String contactName) throws RemoteException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
+        client.sendMessageTo(contactName, message);
+    }
 
 
     // ***************** GETTERS *************************

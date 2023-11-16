@@ -4,5 +4,6 @@ public enum AppState {
     DEFAULT,
     PASSPHRASE,
     CONTACTNAME,
+    BUMPSTRING_BB,
     PASSPHRASE_BB,
 }

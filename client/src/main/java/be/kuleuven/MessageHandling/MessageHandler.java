@@ -38,7 +38,8 @@ public class MessageHandler {
             int boxNumber_AB = bulletinEntry_AB.getBoxNumber();
             byte[] tag_AB = Arrays.copyOf(bulletinEntry_AB.getTag(), bulletinEntry_AB.getTag().length);
             String transformedMessage = client.transformMessage(contactName, message);
-
+            System.out.println("TransformedMessage: " + transformedMessage);
+            System.out.println("Sender: " + Arrays.toString(tag_AB) + ", " + boxNumber_AB);
             byte[] hashedMessage = encryptMessage(transformedMessage.getBytes(), bulletinEntry_AB.getSecretKey());
             byte[] hashedTag = hashTag(tag_AB);
 
@@ -99,7 +100,7 @@ public class MessageHandler {
     }
 
     private void processReceivedMessage(String name, BulletinEntry bulletinEntry_BA, byte[] thisMessage) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
-
+        System.out.println("Proberen decrypteren met key: " + bulletinEntry_BA.getSecretKey());
         String newMessage = new String(SecurityManager.decryptMessage(thisMessage, bulletinEntry_BA.getSecretKey()));
 
         // Extraheren van de tag van index 0 tot 32 (32 bytes)
@@ -109,7 +110,7 @@ public class MessageHandler {
 
         bulletinEntry_BA.setTag(tag_BA);
         bulletinEntry_BA.setBoxNumber(boxNumber_BA);
-
+        System.out.println("Receiver: " + Arrays.toString(tag_BA) + ", " + boxNumber_BA);
         bulletinEntry_BA.setSecretKey(SecurityManager.getSymmetricKey(Base64.getEncoder().encodeToString(bulletinEntry_BA.getSecretKey().getEncoded()), deriveSalt(tag_BA)));
 
         client.getUserInterface().getChatArea().append("[" + name + "]: " + message + " \n");
