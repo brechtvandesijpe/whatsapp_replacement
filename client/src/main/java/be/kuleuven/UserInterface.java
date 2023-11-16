@@ -281,8 +281,8 @@ public class UserInterface extends JFrame{
             boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(passphrase).reverse().toString())) % client.getBulletinBoardInterface().getAmountOfMailboxes();
             System.out.println("AB: " + boxNumber_AB + ", BA: " + boxNumber_BA);
         } else{
-            boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(passphrase)) % client.getBulletinBoardInterface().getAmountOfMailboxes();
-            boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(passphrase).reverse().toString())) % client.getBulletinBoardInterface().getAmountOfMailboxes();
+            boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(passphrase_BB)) % client.getBulletinBoardInterface().getAmountOfMailboxes();
+            boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(passphrase_BB).reverse().toString())) % client.getBulletinBoardInterface().getAmountOfMailboxes();
             System.out.println("AB: " + boxNumber_AB + ", BA: " + boxNumber_BA);
         }
     }
@@ -310,8 +310,8 @@ public class UserInterface extends JFrame{
         }else{
             // TODO GEEN IDEE OF DIT PASSPHRASE MOET ZIJN OF PASSPHRASE_BB
             System.out.println("Passphrase_BB: " + passphrase_BB);
-            secretKey_BA = SecurityManager.getSymmetricKey(passphrase_BB, tag_AB);
-            secretKey_AB = SecurityManager.getSymmetricKey(passphrase_BB, tag_BA);
+            secretKey_AB = SecurityManager.getSymmetricKey(passphrase_BB, tag_AB);
+            secretKey_BA = SecurityManager.getSymmetricKey(passphrase_BB, tag_BA);
         }
     }
 
