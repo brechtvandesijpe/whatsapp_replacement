@@ -282,6 +282,14 @@ public class UserInterface extends JFrame{
         }
     }
 
+    public String getContactAtIndex(int ind){
+        return contactListModel.elementAt(ind);
+    }
+
+    public int[] getSelectedContacts(){
+        return userList.getSelectedIndices();
+    }
+
 
 
 
