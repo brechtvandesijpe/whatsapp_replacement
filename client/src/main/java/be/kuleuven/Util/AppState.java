@@ -3,5 +3,6 @@ package be.kuleuven.Util;
 public enum AppState {
     DEFAULT,
     PASSPHRASE,
-    CONTACTNAME
+    CONTACTNAME,
+    PASSPHRASE_BB,
 }

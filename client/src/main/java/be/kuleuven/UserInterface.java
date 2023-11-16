@@ -7,7 +7,9 @@ import be.kuleuven.Util.*;
 
 import javax.crypto.*;
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
 import java.rmi.*;
+import java.util.List;
 
 public class UserInterface extends JFrame{
     // attributes
@@ -17,7 +19,7 @@ public class UserInterface extends JFrame{
     private BulletinBoardInterface bulletinBoardInterface;
     private String bumpString;
     private String passphrase;
-
+    private String passphrase_BB;
 
     private int boxNumber_AB;
     private int boxNumber_BA;
@@ -25,7 +27,7 @@ public class UserInterface extends JFrame{
     private byte[] tag_BA;
     private SecretKey secretKey_AB;
     private SecretKey secretKey_BA;
-    private DefaultListModel<String> contactList;
+    private final DefaultListModel<String> contactListModel;
 
     // javax.swing
     private JPanel panel;
@@ -44,12 +46,14 @@ public class UserInterface extends JFrame{
 
     public UserInterface(String title) throws RemoteException {
         super(title);
+        contactListModel = new DefaultListModel<>();
+        userList = new JList<>(contactListModel);
+        userList.addListSelectionListener(this::handleListSelectionChange);
         setSize(1280,720);
         setContentPane(panel);
         setAllComponentsVisible();
         addButtonClickListeners();
         client = new Client(clientName, this, bulletinBoardInterface);
-        contactList = new DefaultListModel<>();
     }
 
     public void setAllComponentsVisible() {
@@ -118,10 +122,17 @@ public class UserInterface extends JFrame{
         userList.clearSelection();
         generateBumpString();
         clearChatArea();
-        showInChatArea("Here's the unique bump string for you and your friend: [" + bumpString + "], enter a chosen passphrase to initiate the contact" + "\n");
+        showInChatArea("Here's the unique bump string for you and your contact: [" + bumpString + "], enter a chosen passphrase to initiate the contact" + "\n");
         statusLabel.setText("Bump Action");
         System.out.println("Client " + clientName + " started a bump action.");
-        currentState = AppState.PASSPHRASE;
+        currentState = AppState.PASSPHRASE_BB;
+    }
+
+    public void handleBumpBackButtonClick() {
+        clearChatArea();
+        userList.clearSelection();
+        currentState = AppState.PASSPHRASE_BB;
+        showInChatArea("Fill in the bump string of you and your contact:");
     }
 
     public void handleSendMessageButtonClick() throws RemoteException {
@@ -132,6 +143,8 @@ public class UserInterface extends JFrame{
                     break;
                 case CONTACTNAME:
                     handleSMB_contactName();
+                case PASSPHRASE_BB:
+                    handleSMB_passphrase_bb();
                 case DEFAULT:
                     System.out.println("default");
                     break;
@@ -151,15 +164,28 @@ public class UserInterface extends JFrame{
         currentState = AppState.CONTACTNAME;
     }
 
+    public void handleSMB_passphrase_bb() throws RemoteException {
+        passphrase_BB = messageTextField.getText();
+        setInitialBoxNumbers(passphrase, false);
+        setInitialTags(false);
+        setInitialKeys(false);
+        clearMessageTextField();
+        showInChatArea("With what name do you want to save that client in your contactlist?");
+        currentState = AppState.CONTACTNAME;
+    }
+
     public void handleSMB_contactName() {
         String contactName = messageTextField.getText();
-        contactList.addElement(contactName);
+        contactListModel.addElement(contactName);
         clearChatArea();
         clearMessageTextField();
         client.addContact(new ContactInfo(contactName, boxNumber_AB, boxNumber_BA, tag_AB, tag_BA, secretKey_AB, secretKey_BA));
         resetContactInfo();
         currentState = AppState.DEFAULT;
     }
+
+
+
 
     // *************** HELPER METHODS **************************
 
@@ -244,6 +270,21 @@ public class UserInterface extends JFrame{
         tag_BA = null;
     }
 
+    public void handleListSelectionChange(ListSelectionEvent listSelectionEvent) {
+        if (!userList.getValueIsAdjusting()) return;
+        clearChatArea();
+        int maxSelectionIndex = userList.getMaxSelectionIndex();
+        if (maxSelectionIndex != -1) {
+            client.getHistoryManager().getMessageHistory().get(contactListModel.getElementAt(maxSelectionIndex)).forEach(message -> chatArea.append(message));
+            System.out.println("Client " + clientName + " its contactList changes.");
+        }else{
+            System.err.println("SelectionIndex was -1");
+        }
+    }
+
+
+
+
     // ***************** GETTERS *************************
 
     public String getClientName() {
@@ -321,4 +362,6 @@ public class UserInterface extends JFrame{
     public void setBumpString(String bumpString) {
         this.bumpString = bumpString;
     }
+
+
 }

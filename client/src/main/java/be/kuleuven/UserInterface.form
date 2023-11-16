@@ -41,7 +41,10 @@
             <preferred-size width="150" height="50"/>
           </grid>
         </constraints>
-        <properties/>
+        <properties>
+          <model/>
+          <selectionMode value="0"/>
+        </properties>
       </component>
       <component id="3dce5" class="javax.swing.JButton" binding="joinButton" default-binding="true">
         <constraints>
