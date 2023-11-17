@@ -9,7 +9,6 @@ import be.kuleuven.Util.*;
 import javax.crypto.*;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
-import java.awt.*;
 import java.rmi.*;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -60,6 +59,7 @@ public class UserInterface extends JFrame{
         setSize(1280,720);
         setContentPane(panel);
         setAllComponentsVisible();
+        setButtonsEnabled(true, false, false, false, false);
         addButtonClickListeners();
         client = new Client(clientName, this, bulletinBoardInterface);
         messageTextField.requestFocus();
@@ -122,6 +122,7 @@ public class UserInterface extends JFrame{
             username_header.setText("Client of " + clientName);
             clearUsernameTextField();
             setButtonsEnabled(false, true, true, true, true);
+            usernameTextField.setEnabled(false);
             start(clientName);
             statusLabel.setText("You successfully joined as " + clientName);
             messageFetcherTask = new PeriodicMessageFetcher(client);
