@@ -9,6 +9,7 @@ import be.kuleuven.Util.*;
 import javax.crypto.*;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
+import java.awt.*;
 import java.rmi.*;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -127,6 +128,7 @@ public class UserInterface extends JFrame{
             statusLabel.setText("You successfully joined as " + clientName);
             messageFetcherTask = new PeriodicMessageFetcher(client);
             messageFetcherTask.startPeriodicMessageFetching();
+            this.getRootPane().setDefaultButton(sendMessageButton);
         }else{
             showErrorDialog("You forgot to fill in your clientName");
             statusLabel.setText("You forgot to fill in your name!");
@@ -189,7 +191,6 @@ public class UserInterface extends JFrame{
     public void handleSMB_passphrase_bb() throws RemoteException {
         passphrase_BB = messageTextField.getText();
         clearMessageTextField();
-        // TODO
         setInitialBoxNumbers(passphrase_BB, false);
         setInitialTags(false);
         setInitialKeys(false);
@@ -211,8 +212,6 @@ public class UserInterface extends JFrame{
         String contactName = messageTextField.getText();
         contactListModel.addElement(contactName);
         System.out.println("Nieuw ContactListModel: " + contactListModel);
-        //userList.revalidate(); // new
-        //userList.repaint(); // new
         userList.setSelectedIndex(contactListModel.indexOf(contactName));
         clearChatArea();
         clearMessageTextField();
@@ -295,7 +294,6 @@ public class UserInterface extends JFrame{
             tag_BA = RandomStringGenerator.deriveBytesFromPassphrase(new StringBuilder(passphrase).reverse().toString());
             System.out.println("tag_AB: " + new String(tag_AB) + ", " + new String(tag_BA));
         }else{
-            // TODO GEEN IDEE OF DIT PASSPHRASE MOET ZIJN OF PASSPHRASE_BB
             tag_BA = RandomStringGenerator.deriveBytesFromPassphrase(passphrase_BB);
             tag_AB = RandomStringGenerator.deriveBytesFromPassphrase(new StringBuilder(passphrase_BB).reverse().toString());
             System.out.println("tag_AB: " + new String(tag_AB) + ", " + new String(tag_BA));
