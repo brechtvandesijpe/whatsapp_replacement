@@ -3,6 +3,7 @@ package be.kuleuven;
 import be.kuleuven.Instances.ContactInfo;
 import be.kuleuven.Interfaces.*;
 import be.kuleuven.Managers.SecurityManager;
+import be.kuleuven.Managers.StateManager;
 import be.kuleuven.MessageHandling.PeriodicMessageFetcher;
 import be.kuleuven.Util.*;
 
@@ -10,6 +11,8 @@ import javax.crypto.*;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 import java.rmi.*;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -106,8 +109,8 @@ public class UserInterface extends JFrame{
         sendMessageButton.addActionListener( e -> {
             try {
                 handleSendMessageButtonClick();
-            } catch (RemoteException | IllegalBlockSizeException | NoSuchPaddingException | BadPaddingException |
-                     NoSuchAlgorithmException | InvalidKeySpecException | InvalidKeyException ex) {
+            } catch (IllegalBlockSizeException | NoSuchPaddingException | BadPaddingException |
+                     NoSuchAlgorithmException | InvalidKeySpecException | InvalidKeyException | IOException ex) {
                 throw new RuntimeException(ex);
             }
         });
@@ -154,7 +157,7 @@ public class UserInterface extends JFrame{
         currentState = AppState.BUMPSTRING_BB;
     }
 
-    public void handleSendMessageButtonClick() throws RemoteException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
+    public void handleSendMessageButtonClick() throws IOException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
         if(!messageTextField.getText().isEmpty()) {
             switch (currentState) {
                 case PASSPHRASE:
@@ -221,16 +224,15 @@ public class UserInterface extends JFrame{
         statusLabel.setText("Filled In Contactname");
     }
 
-
-
-    public void handleSMB_default() throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, RemoteException, InvalidKeyException {
+    public void handleSMB_default() throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, IOException, InvalidKeyException {
         int index = userList.getSelectedIndex();
         if (index != -1) {
             String message = messageTextField.getText();
             sendMessage(message, contactListModel.getElementAt(index));
         }
         clearMessageTextField();
-
+        // TODO TEMP
+        StateManager.saveState(new File("test2.txt"), client.getEntries_AB(), client.getEntries_BA(), client.getHistoryManager().getMessageHistory());
     }
 
     // *************** HELPER METHODS **************************

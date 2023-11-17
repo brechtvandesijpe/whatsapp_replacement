@@ -1,6 +1,7 @@
 package be.kuleuven.Instances;
 
 import javax.crypto.*;
+import java.util.Base64;
 
 public class BulletinEntry {
     private int boxNumber;
@@ -38,6 +39,10 @@ public class BulletinEntry {
 
     public void setSecretKey(SecretKey secretKey) {
         this.secretKey = secretKey;
+    }
+
+    public String toString() {
+        return Base64.getEncoder().encodeToString(secretKey.getEncoded()) + ";" + boxNumber + ";" + new String(tag);
     }
 
 }
