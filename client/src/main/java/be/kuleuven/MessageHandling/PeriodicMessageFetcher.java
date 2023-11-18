@@ -3,6 +3,7 @@ package be.kuleuven.MessageHandling;
 import be.kuleuven.*;
 
 import javax.crypto.*;
+import java.io.IOException;
 import java.rmi.*;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
@@ -13,10 +14,12 @@ import java.util.concurrent.*;
 public class PeriodicMessageFetcher {
     private static final int MESSAGE_FETCH_INTERVAL = 200;
     private final Client client;
+    private final UserInterface userInterface;
     private final Timer timer = new Timer();
 
-    public PeriodicMessageFetcher(Client client) {
+    public PeriodicMessageFetcher(Client client, UserInterface userInterface) {
         this.client = client;
+        this.userInterface = userInterface;
     }
 
     public void startPeriodicMessageFetching() {
@@ -28,12 +31,15 @@ public class PeriodicMessageFetcher {
                 if(selected.length > 0) {
                     // Fetch messages IF there are selected contacts
                     client.getMessagesFrom(client.getUserInterface().getContactAtIndex(selected[selected.length - 1]));
+                    userInterface.saveState();
                 }
             } catch (RemoteException | InvalidKeyException | BadPaddingException |
                      IllegalBlockSizeException | NoSuchAlgorithmException | InvalidKeySpecException e) {
                 e.printStackTrace();
             } catch (NoSuchPaddingException e) {
                 System.err.println("NoSuchPaddingException");
+                throw new RuntimeException(e);
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         };

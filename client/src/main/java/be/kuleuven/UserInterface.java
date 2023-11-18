@@ -10,7 +10,6 @@ import be.kuleuven.Util.*;
 import javax.crypto.*;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.rmi.*;
@@ -37,6 +36,7 @@ public class UserInterface extends JFrame{
     private SecretKey secretKey_AB;
     private SecretKey secretKey_BA;
     private final DefaultListModel<String> contactListModel;
+    private StateManager stateManager;
 
     // javax.swing
     private JPanel panel;
@@ -53,6 +53,7 @@ public class UserInterface extends JFrame{
     private JLabel username_header;
     private JPanel panel2;
     private JScrollPane jscrollpane;
+    private JButton restoreButton;
 
     public UserInterface(String title) throws RemoteException {
         super(title);
@@ -63,10 +64,12 @@ public class UserInterface extends JFrame{
         setSize(1280,720);
         setContentPane(panel);
         setAllComponentsVisible();
-        setButtonsEnabled(true, false, false, false, false);
+        setButtonsEnabled(true, false, false, false, false,  false);
         addButtonClickListeners();
         client = new Client(clientName, this, bulletinBoardInterface);
         messageTextField.requestFocus();
+        stateManager = new StateManager(this);
+        this.getRootPane().setDefaultButton(joinButton);
     }
 
     public void setAllComponentsVisible() {
@@ -79,6 +82,7 @@ public class UserInterface extends JFrame{
         bumpBackButton.setVisible(true);
         leaveButton.setVisible(true);
         sendMessageButton.setVisible(true);
+        restoreButton.setVisible(true);
         statusLabel.setVisible(true);
         panel2.setVisible(true);
     }
@@ -116,6 +120,14 @@ public class UserInterface extends JFrame{
         });
 
         bumpBackButton.addActionListener(e -> handleBumpBackButtonClick());
+
+        restoreButton.addActionListener(e -> {
+            try {
+                handleRestoreButtonClick();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
     }
 
     // ***************** ButtonsClicks ************************
@@ -125,11 +137,11 @@ public class UserInterface extends JFrame{
         if(!clientName.isEmpty()) {
             username_header.setText("Client of " + clientName);
             clearUsernameTextField();
-            setButtonsEnabled(false, true, true, true, true);
+            setButtonsEnabled(false, true, true, true, true,  true);
             usernameTextField.setEnabled(false);
             start(clientName);
             statusLabel.setText("You successfully joined as " + clientName);
-            messageFetcherTask = new PeriodicMessageFetcher(client);
+            messageFetcherTask = new PeriodicMessageFetcher(client, this);
             messageFetcherTask.startPeriodicMessageFetching();
             this.getRootPane().setDefaultButton(sendMessageButton);
         }else{
@@ -155,6 +167,17 @@ public class UserInterface extends JFrame{
         statusLabel.setText("Bump Back Action");
         System.out.println("Client " + clientName + " started a bump-back action.");
         currentState = AppState.BUMPSTRING_BB;
+    }
+
+    public void saveState() throws IOException {
+        String fileName = "backup_" + client.getName() + ".txt";
+        stateManager.saveState(new File(fileName), client.getEntries_AB(), client.getEntries_BA(), client.getHistoryManager().getMessageHistory());
+    }
+
+    public void handleRestoreButtonClick() throws IOException {
+        String fileName = "backup_" + client.getName() + ".txt";
+        stateManager.restoreState(new File(fileName), client.getEntries_AB(), client.getEntries_BA(), client.getHistoryManager().getMessageHistory());
+        setButtonsEnabled(false, true, true, true, true,  false);
     }
 
     public void handleSendMessageButtonClick() throws IOException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
@@ -231,8 +254,8 @@ public class UserInterface extends JFrame{
             sendMessage(message, contactListModel.getElementAt(index));
         }
         clearMessageTextField();
-        // TODO TEMP
-        StateManager.saveState(new File("test2.txt"), client.getEntries_AB(), client.getEntries_BA(), client.getHistoryManager().getMessageHistory());
+        // Vanaf nu kan je niet meer restoren
+        setButtonsEnabled(false, true, true, true, true,  false);
     }
 
     // *************** HELPER METHODS **************************
@@ -264,12 +287,13 @@ public class UserInterface extends JFrame{
         chatArea.append("\n");
     }
 
-    public void setButtonsEnabled(boolean joinButton, boolean leaveButton, boolean bumpButton, boolean bumpBackButton, boolean sendMessageButton) {
+    public void setButtonsEnabled(boolean joinButton, boolean leaveButton, boolean bumpButton, boolean bumpBackButton, boolean sendMessageButton, boolean restoreButton) {
         this.joinButton.setEnabled(joinButton);
         this.leaveButton.setEnabled(leaveButton);
         this.bumpButton.setEnabled(bumpButton);
         this.bumpBackButton.setEnabled(bumpBackButton);
         this.sendMessageButton.setEnabled(sendMessageButton);
+        this.restoreButton.setEnabled(restoreButton);
     }
 
     public void generateBumpString() {
@@ -436,5 +460,23 @@ public class UserInterface extends JFrame{
         this.bumpString = bumpString;
     }
 
+    public PeriodicMessageFetcher getMessageFetcherTask() {
+        return messageFetcherTask;
+    }
 
+    public void setMessageFetcherTask(PeriodicMessageFetcher messageFetcherTask) {
+        this.messageFetcherTask = messageFetcherTask;
+    }
+
+    public AppState getCurrentState() {
+        return currentState;
+    }
+
+    public void setCurrentState(AppState currentState) {
+        this.currentState = currentState;
+    }
+
+    public DefaultListModel<String> getContactListModel() {
+        return contactListModel;
+    }
 }

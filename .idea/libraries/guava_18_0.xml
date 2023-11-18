@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="guava-18.0">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/Orchid-develop/Orchid-develop/lib/guava-18.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Orchid-develop/Orchid-develop/lib/jsr305.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Orchid-develop/Orchid-develop/lib/proguard.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/Orchid-develop/Orchid-develop/lib/jsr305.jar!/" />
+    </SOURCES>
+  </library>
+</component>
