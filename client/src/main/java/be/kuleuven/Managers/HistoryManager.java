@@ -3,6 +3,8 @@ package be.kuleuven.Managers;
 import java.util.*;
 
 public class HistoryManager {
+    // Key: contactName,
+    // Value: messages
     private final Map<String, List<String>> messageHistory;
 
     public HistoryManager() {

@@ -11,12 +11,14 @@ public class SecurityManager {
     private final static String ENCRYPTION_ALGORITHM = "AES";
     private final static String PBKDF_ALGORITHM = "PBKDF2WithHmacSHA1";
 
+    // Hash a string
     public static byte[] hash(String unhashed) throws NoSuchAlgorithmException {
         MessageDigest messageDigest = MessageDigest.getInstance(HASH_ALGORITHM);
         return messageDigest.digest(unhashed.getBytes());
     }
 
     // Password-Based Key Derivation Function 2 (PBKDF2).
+    // Derive a symmetric key using PBKDF2
     public static SecretKey getSymmetricKey(String code, byte[] salt) {
         try {
             SecretKeyFactory factory = SecretKeyFactory.getInstance(PBKDF_ALGORITHM);
@@ -29,6 +31,7 @@ public class SecurityManager {
         }
     }
 
+    // Decrypt an encrypted message
     public static byte[] decryptMessage(byte[] encryptedMessageBytes, SecretKey symmetricKey)
             throws InvalidKeyException,
             NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException {
@@ -37,12 +40,13 @@ public class SecurityManager {
         return cipher.doFinal(encryptedMessageBytes);
     }
 
-    public static byte[] encryptMessage(byte[] encryptedMessageBytes, SecretKey symmetricKey)
+    // Encrypt a plain-text message
+    public static byte[] encryptMessage(byte[] plaintTextBytes, SecretKey symmetricKey)
             throws InvalidKeyException,
             NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, symmetricKey);
-        return cipher.doFinal(encryptedMessageBytes);
+        return cipher.doFinal(plaintTextBytes);
     }
 
     @Override
