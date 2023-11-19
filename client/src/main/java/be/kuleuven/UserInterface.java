@@ -17,9 +17,9 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
-
+// Class representing the user interface for the chat application
 public class UserInterface extends JFrame{
-    // attributes
+    // Attributes
     private String clientName;
     private PeriodicMessageFetcher messageFetcherTask;
     private AppState currentState = AppState.DEFAULT;
@@ -36,9 +36,9 @@ public class UserInterface extends JFrame{
     private SecretKey secretKey_AB;
     private SecretKey secretKey_BA;
     private final DefaultListModel<String> contactListModel;
-    private StateManager stateManager;
+    private final StateManager stateManager;
 
-    // javax.swing
+    // javax.swing components
     private JPanel panel;
     private JTextField messageTextField;
     private JTextField usernameTextField;
@@ -72,6 +72,7 @@ public class UserInterface extends JFrame{
         this.getRootPane().setDefaultButton(joinButton);
     }
 
+    // Method to set all graphical components visible
     public void setAllComponentsVisible() {
         messageTextField.setVisible(true);
         usernameTextField.setVisible(true);
@@ -87,6 +88,7 @@ public class UserInterface extends JFrame{
         panel2.setVisible(true);
     }
 
+    // Main method to start the user interface
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame userInterface;
@@ -333,7 +335,6 @@ public class UserInterface extends JFrame{
             secretKey_AB = SecurityManager.getSymmetricKey(passphrase, tag_AB);
             secretKey_BA = SecurityManager.getSymmetricKey(passphrase, tag_BA);
         }else{
-            // TODO GEEN IDEE OF DIT PASSPHRASE MOET ZIJN OF PASSPHRASE_BB
             System.out.println("Passphrase_BB: " + passphrase_BB);
             secretKey_AB = SecurityManager.getSymmetricKey(passphrase_BB, tag_AB);
             secretKey_BA = SecurityManager.getSymmetricKey(passphrase_BB, tag_BA);

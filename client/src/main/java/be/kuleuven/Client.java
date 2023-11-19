@@ -13,8 +13,10 @@ import java.security.*;
 import java.security.spec.*;
 import java.util.*;
 
+// Class representing the main client application
 public class Client extends UnicastRemoteObject {
 
+    // Remote interface for communication with the bulletin board
     public BulletinBoardInterface bulletinBoardInterface;
     private final UserInterface userInterface;
     private final String clientName;
@@ -23,9 +25,9 @@ public class Client extends UnicastRemoteObject {
     private final MessageHandler messageHandler;
     private final HistoryManager historyManager;
 
-
+    // Client initialization
     public Client(String clientName, UserInterface userInterface, BulletinBoardInterface bulletinBoardImpl) throws RemoteException {
-        super();
+        super(); // UnicastRemoteObject
         this.clientName = clientName;
         this.userInterface = userInterface;
         this.entries_AB = new ArrayList<>();
@@ -35,11 +37,13 @@ public class Client extends UnicastRemoteObject {
         this.historyManager = new HistoryManager();
     }
 
+    // Method to add a contact to the client's entry lists
     public void addContact(ContactInfo contactInfo) {
         historyManager.initializeContactHistory(contactInfo.getContactName());
         entries_AB.add(new Entry(contactInfo.getContactName(), new BulletinEntry(contactInfo.getBoxNumber_AB(), contactInfo.getTag_AB(), contactInfo.getSecretKey_AB())));
         entries_BA.add(new Entry(contactInfo.getContactName(), new BulletinEntry(contactInfo.getBoxNumber_BA(), contactInfo.getTag_BA(), contactInfo.getSecretKey_BA())));
     }
+
 
     public void connectToRMIServer() {
         try {
@@ -51,6 +55,7 @@ public class Client extends UnicastRemoteObject {
         }
     }
 
+    // Method to get the BulletinEntry for a contact from entries_AB
     public BulletinEntry getBulletEntry_AB_from(String name) {
         return entries_AB.stream()
                 .filter(entry -> entry.getName().equals(name))
@@ -59,6 +64,7 @@ public class Client extends UnicastRemoteObject {
                 .orElse(null);
     }
 
+    // Method to get the BulletinEntry for a contact from entries_BA
     public BulletinEntry getBulletinEntry_BA_from(String name) {
         return entries_BA.stream()
                 .filter(entry -> entry.getName().equals(name))
@@ -67,14 +73,17 @@ public class Client extends UnicastRemoteObject {
                 .orElse(null);
     }
 
+    // Method to fetch messages from the bulletin board for a specific contact
     public void getMessagesFrom(String contactName) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, RemoteException {
         messageHandler.getMessagesFrom(contactName);
     }
 
+    // Method to send a message to a specific contact
     public void sendMessageTo(String contactName, String message) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, RemoteException, InvalidKeyException {
         messageHandler.sendMessage(contactName, message);
     }
 
+    // Method to transform a message before sending it
     public String transformMessage(String contactName, String message) throws RemoteException {
         // Generate a random tag
         String randomTag = generateRandomTag();
