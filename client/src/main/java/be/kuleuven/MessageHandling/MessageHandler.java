@@ -69,6 +69,7 @@ public class MessageHandler {
         System.out.println("Nieuwe SecretKey: " + encodedSecretKey);
     }
 
+    // Derive a salt from a tag, could be a random salt aswell but then we have to save it somewhere
     private byte[] deriveSalt(byte[] tag) {
         byte[] salt = new byte[256];
         System.arraycopy(tag, 1, salt, 0, 64);

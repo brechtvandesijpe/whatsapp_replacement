@@ -12,16 +12,19 @@ import java.util.concurrent.*;
 
 
 public class PeriodicMessageFetcher {
+    // We could use some additive increase multiplicative decrease with a higher bound, instead of a fixed interval
     private static final int MESSAGE_FETCH_INTERVAL = 200;
     private final Client client;
     private final UserInterface userInterface;
     private final Timer timer = new Timer();
 
+    // Constructor to initialize PeriodicMessageFetcher with a Client and UserInterface instance
     public PeriodicMessageFetcher(Client client, UserInterface userInterface) {
         this.client = client;
         this.userInterface = userInterface;
     }
 
+    // Start fetching messages periodically
     public void startPeriodicMessageFetching() {
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 

@@ -3,11 +3,13 @@ package be.kuleuven.Util;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 
+// Utility class for generating random strings for bumpstring, and deriving values from strings
 public class RandomStringGenerator {
 
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final SecureRandom RANDOM = new SecureRandom();
 
+    // Generate a random bump string of the specified length using characters
     public static String generateRandomString(int length) {
         StringBuilder stringBuilder = new StringBuilder(length);
 
@@ -20,15 +22,12 @@ public class RandomStringGenerator {
         return stringBuilder.toString();
     }
 
+    // Derive an integer from a passphrase using SHA-256 (used to determine the initial common attributes: box, tag, key)
     public static int deriveIntFromPasshrase(String input) {
         try {
-            // Maak een SHA-256 MessageDigest object
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-
-            // Krijg de byte-array van de inputstring
             byte[] encodedhash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-
-            // Converteer de byte-array naar een integer
+            // Converteer byte-array to an integer
             int result = 0;
             for (byte b : encodedhash) {
                 result = result * 256 + (b & 0xFF);
@@ -36,27 +35,25 @@ public class RandomStringGenerator {
 
             return result;
         } catch (NoSuchAlgorithmException e) {
+            System.err.println("deriveIntFromPasshrase failed");
             e.printStackTrace();
             return 0;
         }
     }
 
+    // Derive bytes from a passphrase using SHA-256
     public static byte[] deriveBytesFromPassphrase(String passphrase) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
-            // Converteer de passphrase naar bytes
             byte[] passphraseBytes = passphrase.getBytes(StandardCharsets.UTF_8);
-
-            // Bereken de hash van de passphrase
             byte[] hash = digest.digest(passphraseBytes);
 
-            // Retourneer de resulterende hash als afgeleide bytes
             return hash;
         } catch (NoSuchAlgorithmException e) {
-            // Handle eventuele uitzonderingen bij het selecteren van de hashfunctie
+            System.err.println("deriveBytesFromPassphrase failed");
             e.printStackTrace();
-            return null; // Of gooi een aangepaste uitzondering op
+            return null;
         }
     }
 }
