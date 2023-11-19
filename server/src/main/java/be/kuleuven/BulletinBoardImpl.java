@@ -1,7 +1,7 @@
 package be.kuleuven;
 
 import be.kuleuven.Instances.*;
-import be.kuleuven.Interfaces.BulletinBoardInterface;
+import be.kuleuven.Interfaces.*;
 
 import java.net.*;
 import java.rmi.*;
@@ -28,6 +28,7 @@ public class BulletinBoardImpl extends UnicastRemoteObject implements BulletinBo
         System.out.println("BulletinBoard initialized succesfully.");
     }
 
+    // Retrieve a message from a specified mailbox using the hashed tag
     @Override
     public byte[] getMessage(int boxNumber, byte[] tag) throws NoSuchAlgorithmException, RemoteException {
         MessageDigest messageDigest = MessageDigest.getInstance(HASH_ALGORITHM);
@@ -36,22 +37,25 @@ public class BulletinBoardImpl extends UnicastRemoteObject implements BulletinBo
         return targetMailbox.getMessageByTag(hashedTag);
     }
 
+    // Post a message to a specified mailbox using the hashed tag
     @Override
     public void postMessage(int boxNumber, byte[] message, byte[] hashedTag) throws RemoteException {
-        // Store the message in the specified mailbox using the hashed tag
         bulletinBoard[boxNumber].storeMessage(hashedTag, message);
     }
 
+    // Notify when a client leaves the chat
     @Override
     public void leave(String clientName) throws RemoteException {
         System.err.println(clientName + " has left.");
     }
 
+    // Get the total number of mailboxes on the bulletin board
     @Override
     public int getAmountOfMailboxes() throws RemoteException {
         return bulletinBoard.length;
     }
 
+    // Main method to start the Bulletin Board server
     public static void main(String[] args) {
         initializeRMIRegistry();
         startBulletinBoardServer();
@@ -68,6 +72,7 @@ public class BulletinBoardImpl extends UnicastRemoteObject implements BulletinBo
         }
     }
 
+    // Start the Bulletin Board server and bind it to the RMI registry
     private static void startBulletinBoardServer() {
         try {
             BulletinBoardImpl bulletinBoardImpl = new BulletinBoardImpl();
