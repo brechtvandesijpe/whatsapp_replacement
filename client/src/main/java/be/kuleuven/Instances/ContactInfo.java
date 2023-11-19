@@ -3,6 +3,8 @@ package be.kuleuven.Instances;
 import javax.crypto.*;
 import java.util.*;
 
+// AB indicates : A->B direction
+// BA indicates : B->A direction
 public class ContactInfo {
     private String contactName;
     private int boxNumber_AB;
@@ -12,6 +14,8 @@ public class ContactInfo {
     private SecretKey secretKey_AB;
     private SecretKey secretKey_BA;
 
+    // Contains information needed to communicate with the contact
+    // and the name you use for your contact in your client
     public ContactInfo(String contactName, int boxNumber_AB, int boxNumber_BA, byte[] tag_AB, byte[] tag_BA,
             SecretKey secretKey_AB, SecretKey secretKey_BA) {
         this.contactName = contactName;
