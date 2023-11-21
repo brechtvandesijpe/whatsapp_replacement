@@ -24,6 +24,7 @@ public class Client extends UnicastRemoteObject {
     private final List<Entry> entries_BA;
     private final MessageHandler messageHandler;
     private final HistoryManager historyManager;
+    private List<Group> groups;
 
     // Client initialization
     public Client(String clientName, UserInterface userInterface, BulletinBoardInterface bulletinBoardImpl) throws RemoteException {
@@ -35,6 +36,7 @@ public class Client extends UnicastRemoteObject {
         this.bulletinBoardInterface = bulletinBoardImpl;
         this.messageHandler = new MessageHandler(this);
         this.historyManager = new HistoryManager();
+        this.groups = new ArrayList<>();
     }
 
     // Method to add a contact to the client's entry lists
@@ -119,6 +121,11 @@ public class Client extends UnicastRemoteObject {
         int rnd = (int) (Math.random() * characters.length());
 
         return characters.charAt(rnd);
+    }
+
+    public void createGroup(List<String> clientNames, String groupId) {
+        groups.add(new Group(groupId, clientNames));
+        
     }
 
     public UserInterface getUserInterface() {
