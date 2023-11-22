@@ -54,6 +54,8 @@ public class UserInterface extends JFrame {
     private JPanel panel2;
     private JScrollPane jscrollpane;
     private JButton restoreButton;
+    private String passPhrase;
+    private String contactName;
 
     public UserInterface(String title) throws RemoteException {
         super(title);
@@ -277,6 +279,22 @@ public class UserInterface extends JFrame {
 
     public void showErrorDialog(String message) {
         JOptionPane.showMessageDialog(this, message, "Oopsie Woopsie! Something failed!", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public void showBumpDialog() {
+        this.passPhrase = JOptionPane.showInputDialog("Your bump string is: " + bumpString + "\n Please enter a passphrase of your choice: ");
+    }
+
+    public void showBBSDialog() {
+        this.passPhrase = JOptionPane.showInputDialog("Please enter the bump string: ");
+    }
+
+    public void showBumpPassDialog() {
+        this.passPhrase = JOptionPane.showInputDialog("Please enter the passphrase: ");
+    }
+
+    public void showContactDialog() {
+        this.contactName = JOptionPane.showInputDialog("Please enter the contact's name: ");
     }
 
     public void clearUsernameTextField() {
