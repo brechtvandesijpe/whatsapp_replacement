@@ -18,7 +18,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
 // Class representing the user interface for the chat application
-public class UserInterface extends JFrame{
+public class UserInterface extends JFrame {
     // Attributes
     private String clientName;
     private PeriodicMessageFetcher messageFetcherTask;
@@ -130,6 +130,10 @@ public class UserInterface extends JFrame{
                 throw new RuntimeException(ex);
             }
         });
+
+        leaveButton.addActionListener(e -> {
+            handleLeaveButtonClick();
+        });
     }
 
     // ***************** ButtonsClicks ************************
@@ -137,16 +141,20 @@ public class UserInterface extends JFrame{
     public void handleJoinButtonClick() throws RemoteException {
         clientName = usernameTextField.getText().toLowerCase();
         if(!clientName.isEmpty()) {
-            username_header.setText("Client of " + clientName);
-            clearUsernameTextField();
-            setButtonsEnabled(false, true, true, true, true,  true);
-            usernameTextField.setEnabled(false);
-            start(clientName);
-            statusLabel.setText("You successfully joined as " + clientName);
-            messageFetcherTask = new PeriodicMessageFetcher(client, this);
-            messageFetcherTask.startPeriodicMessageFetching();
-            this.getRootPane().setDefaultButton(sendMessageButton);
-        }else{
+            try {
+                start(clientName);
+                username_header.setText("Client of " + clientName);
+                clearUsernameTextField();
+                setButtonsEnabled(false, true, true, true, true,  true);
+                usernameTextField.setEnabled(false);
+                statusLabel.setText("You successfully joined as " + clientName);
+                messageFetcherTask = new PeriodicMessageFetcher(client, this);
+                messageFetcherTask.startPeriodicMessageFetching();
+                this.getRootPane().setDefaultButton(sendMessageButton);
+            } catch(ConnectException e) {
+                showErrorDialog(e.getMessage());
+            }
+        } else {
             showErrorDialog("You forgot to fill in your clientName");
             statusLabel.setText("You forgot to fill in your name!");
         }
@@ -235,7 +243,6 @@ public class UserInterface extends JFrame{
         currentState = AppState.PASSPHRASE_BB;
     }
 
-
     public void handleSMB_contactName() {
         String contactName = messageTextField.getText();
         contactListModel.addElement(contactName);
@@ -262,8 +269,8 @@ public class UserInterface extends JFrame{
 
     // *************** HELPER METHODS **************************
 
-    public void start(String clientName) throws RemoteException {
-        client = new Client(clientName, this, client.getBulletinBoardInterface());
+    public void start(String clientName) throws ConnectException, RemoteException {
+        client = new Client(clientName, this, client.getBulletinBoard());
         client.connectToRMIServer();
         System.err.println("Client " + clientName + " is ready to chat.");
     }
@@ -304,24 +311,24 @@ public class UserInterface extends JFrame{
 
     public void setInitialBoxNumbers(String passphrase, boolean isInitiator) throws RemoteException {
         // De eerste boxnumbers worden afgeleid uit common parameter passphrase, alle volgende boxenumbers zijn random
-        if(isInitiator) {
-            boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(passphrase)) % client.getBulletinBoardInterface().getAmountOfMailboxes();
-            boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(passphrase).reverse().toString())) % client.getBulletinBoardInterface().getAmountOfMailboxes();
+        if (isInitiator) {
+            boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(passphrase)) % client.getBulletinBoard().getAmountOfMailboxes();
+            boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(passphrase).reverse().toString())) % client.getBulletinBoard().getAmountOfMailboxes();
             System.out.println("AB: " + boxNumber_AB + ", BA: " + boxNumber_BA);
-        } else{
-            boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(passphrase_BB)) % client.getBulletinBoardInterface().getAmountOfMailboxes();
-            boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(passphrase_BB).reverse().toString())) % client.getBulletinBoardInterface().getAmountOfMailboxes();
+        } else {
+            boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(passphrase_BB)) % client.getBulletinBoard().getAmountOfMailboxes();
+            boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(passphrase_BB).reverse().toString())) % client.getBulletinBoard().getAmountOfMailboxes();
             System.out.println("AB: " + boxNumber_AB + ", BA: " + boxNumber_BA);
         }
     }
 
     public void setInitialTags(boolean isInitiator) {
         // De eerste tags worden afgeleid uit common parameter passphrase, alle volgende tags zijn random
-        if(isInitiator) {
+        if (isInitiator) {
             tag_AB = RandomStringGenerator.deriveBytesFromPassphrase(passphrase);
             tag_BA = RandomStringGenerator.deriveBytesFromPassphrase(new StringBuilder(passphrase).reverse().toString());
             System.out.println("tag_AB: " + new String(tag_AB) + ", " + new String(tag_BA));
-        }else{
+        } else {
             tag_BA = RandomStringGenerator.deriveBytesFromPassphrase(passphrase_BB);
             tag_AB = RandomStringGenerator.deriveBytesFromPassphrase(new StringBuilder(passphrase_BB).reverse().toString());
             System.out.println("tag_AB: " + new String(tag_AB) + ", " + new String(tag_BA));
@@ -330,11 +337,11 @@ public class UserInterface extends JFrame{
 
     public void setInitialKeys(boolean isInitiator) {
         // De tags worden als salt meegegeven, maar kan eender wat zijn
-        if(isInitiator) {
+        if (isInitiator) {
             System.out.println("Passphrase: " + passphrase);
             secretKey_AB = SecurityManager.getSymmetricKey(passphrase, tag_AB);
             secretKey_BA = SecurityManager.getSymmetricKey(passphrase, tag_BA);
-        }else{
+        } else {
             System.out.println("Passphrase_BB: " + passphrase_BB);
             secretKey_AB = SecurityManager.getSymmetricKey(passphrase_BB, tag_AB);
             secretKey_BA = SecurityManager.getSymmetricKey(passphrase_BB, tag_BA);
@@ -359,7 +366,7 @@ public class UserInterface extends JFrame{
         if (maxSelectionIndex != -1) {
             client.getHistoryManager().getMessageHistory().get(contactListModel.getElementAt(maxSelectionIndex)).forEach(message -> chatArea.append(message));
             System.out.println("Client " + clientName + " its contactList changes.");
-        }else{
+        } else {
             System.err.println("SelectionIndex was -1");
         }
     }
@@ -382,6 +389,13 @@ public class UserInterface extends JFrame{
         client.sendMessageTo(contactName, message);
     }
 
+    public void handleLeaveButtonClick() {
+        try {
+            client.leave();
+        } catch(RemoteException e) {
+            e.printStackTrace();
+        }
+    }
 
     // ***************** GETTERS *************************
 

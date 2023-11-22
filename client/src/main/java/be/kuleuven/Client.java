@@ -6,7 +6,7 @@ import be.kuleuven.Managers.*;
 import be.kuleuven.MessageHandling.*;
 
 import javax.crypto.*;
-import java.net.*;
+import java.net.MalformedURLException;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.security.*;
@@ -17,7 +17,7 @@ import java.util.*;
 public class Client extends UnicastRemoteObject {
 
     // Remote interface for communication with the bulletin board
-    public BulletinBoardInterface bulletinBoardInterface;
+    public BulletinBoardInterface bulletinBoard;
     private final UserInterface userInterface;
     private final String clientName;
     private final List<Entry> entries_AB;
@@ -33,7 +33,7 @@ public class Client extends UnicastRemoteObject {
         this.userInterface = userInterface;
         this.entries_AB = new ArrayList<>();
         this.entries_BA = new ArrayList<>();
-        this.bulletinBoardInterface = bulletinBoardImpl;
+        this.bulletinBoard = bulletinBoardImpl;
         this.messageHandler = new MessageHandler(this);
         this.historyManager = new HistoryManager();
         this.groups = new ArrayList<>();
@@ -47,11 +47,11 @@ public class Client extends UnicastRemoteObject {
     }
 
 
-    public void connectToRMIServer() {
+    public void connectToRMIServer() throws ConnectException, RemoteException {
         try {
-            bulletinBoardInterface = (BulletinBoardInterface) Naming.lookup("rmi://localhost/chat/");
+            bulletinBoard = (BulletinBoardInterface) Naming.lookup("rmi://localhost/chat/");
             System.out.println("Verbonden met de RMI-server.\n");
-        } catch (RemoteException | NotBoundException | MalformedURLException e) {
+        } catch (NotBoundException | MalformedURLException e) {
             System.err.println("Fout bij verbinden met de RMI-server:");
             e.printStackTrace();
         }
@@ -111,7 +111,7 @@ public class Client extends UnicastRemoteObject {
     }
 
     private int getRandomMailboxNumber() throws RemoteException {
-        return (int) (Math.random() * this.bulletinBoardInterface.getAmountOfMailboxes());
+        return (int) (Math.random() * this.bulletinBoard.getAmountOfMailboxes());
     }
 
     private static char getRandomString() {
@@ -132,8 +132,8 @@ public class Client extends UnicastRemoteObject {
         return userInterface;
     }
 
-    public BulletinBoardInterface getBulletinBoardInterface() {
-        return bulletinBoardInterface;
+    public BulletinBoardInterface getBulletinBoard() {
+        return bulletinBoard;
     }
 
     public String getName() {
@@ -158,5 +158,9 @@ public class Client extends UnicastRemoteObject {
 
     public HistoryManager getHistoryManager() {
         return historyManager;
+    }
+    
+    public void leave() throws RemoteException {
+        bulletinBoard.leave(clientName);
     }
 }

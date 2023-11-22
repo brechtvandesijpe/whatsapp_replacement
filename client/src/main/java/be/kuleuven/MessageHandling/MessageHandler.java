@@ -78,7 +78,7 @@ public class MessageHandler {
 
     private void postMessageToBulletinBoard(int boxNumber_AB, byte[] hashedMessage, byte[] hashedTag, String message, String contactName) {
         try {
-            client.getBulletinBoardInterface().postMessage(boxNumber_AB, hashedMessage, hashedTag);
+            client.getBulletinBoard().postMessage(boxNumber_AB, hashedMessage, hashedTag);
 
             String formattedMessage = String.format("[%s]: %s\n", client.getName(), message);
             client.getUserInterface().getChatArea().append(formattedMessage);
@@ -93,10 +93,10 @@ public class MessageHandler {
 
     public void getMessagesFrom(String contactName) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, RemoteException {
         BulletinEntry bulletinEntry_BA = client.getBulletinEntry_BA_from(contactName);
-        byte[] currentMessage  = client.getBulletinBoardInterface().getMessage(bulletinEntry_BA.getBoxNumber(), bulletinEntry_BA.getTag());
+        byte[] currentMessage  = client.getBulletinBoard().getMessage(bulletinEntry_BA.getBoxNumber(), bulletinEntry_BA.getTag());
         while (currentMessage != null) {
             processReceivedMessage(contactName, bulletinEntry_BA, currentMessage);
-            currentMessage  = client.getBulletinBoardInterface().getMessage(bulletinEntry_BA.getBoxNumber(), bulletinEntry_BA.getTag());
+            currentMessage  = client.getBulletinBoard().getMessage(bulletinEntry_BA.getBoxNumber(), bulletinEntry_BA.getTag());
         }
     }
 
