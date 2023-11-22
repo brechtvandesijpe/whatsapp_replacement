@@ -54,7 +54,6 @@ public class UserInterface extends JFrame {
     private JPanel panel2;
     private JScrollPane jscrollpane;
     private JButton restoreButton;
-    private String passPhrase;
     private String contactName;
 
     public UserInterface(String title) throws RemoteException {
@@ -165,20 +164,22 @@ public class UserInterface extends JFrame {
     public void handleBumpButtonClick() {
         userList.clearSelection();
         generateBumpString();
-        clearChatArea();
-        showInChatArea("Here's the unique bump string for you and your contact: [" + bumpString + "], enter a chosen passphrase to initiate the contact" + "\n");
+        this.passphrase = JOptionPane.showInputDialog("Your bump string is: " + bumpString + "\n Please enter a passphrase of your choice: ");
         statusLabel.setText("Bump Action");
         System.out.println("Client " + clientName + " started a bump action.");
-        currentState = AppState.PASSPHRASE;
+        try {
+            handleSMB_passphrase();
+        } catch(RemoteException e) {
+            throw new RuntimeException();
+        }
     }
 
     public void handleBumpBackButtonClick() {
         userList.clearSelection();
-        clearChatArea();
-        showInChatArea("Fill in the bump string of you and your contact:");
+        this.passphrase = JOptionPane.showInputDialog("Please enter the bump string: ");
         statusLabel.setText("Bump Back Action");
         System.out.println("Client " + clientName + " started a bump-back action.");
-        currentState = AppState.BUMPSTRING_BB;
+        handleSMB_bumpstring_bb();
     }
 
     public void saveState() throws IOException {
@@ -216,43 +217,38 @@ public class UserInterface extends JFrame {
     // Initially (at the same time they also exchange the necessary cryptographic
     // keys) they agree on a tag and the index of the first cell to use.
     public void handleSMB_passphrase() throws RemoteException {
-        passphrase = messageTextField.getText();
-        setInitialBoxNumbers(passphrase, true);
+        setInitialBoxNumbers(this.passphrase, true);
         setInitialTags(true);
         setInitialKeys(true);
-        clearMessageTextField();
-        showInChatArea("With what name do you want to save that client in your contactlist?");
+        this.contactName = JOptionPane.showInputDialog("Please enter the contact's name: ");
         statusLabel.setText("Filled In passphrase as B");
-        currentState = AppState.CONTACTNAME;
+        handleSMB_contactName();
     }
 
     public void handleSMB_passphrase_bb() throws RemoteException {
-        passphrase_BB = messageTextField.getText();
-        clearMessageTextField();
-        setInitialBoxNumbers(passphrase_BB, false);
+        setInitialBoxNumbers(this.passphrase_BB, false);
         setInitialTags(false);
         setInitialKeys(false);
-        showInChatArea("With what name do you want to save that client in your contactlist?");
+        this.contactName = JOptionPane.showInputDialog("Please enter the contact's name: ");
         statusLabel.setText("Filled In passphrase as BB");
-        currentState = AppState.CONTACTNAME;
+        handleSMB_contactName();
     }
 
     public void handleSMB_bumpstring_bb() {
-        clearChatArea();
         userList.clearSelection();
-        clearMessageTextField();
-        showInChatArea("Fill in the passphrase of you and your contact");;
-        currentState = AppState.PASSPHRASE_BB;
+        this.passphrase_BB = JOptionPane.showInputDialog("Please enter the passphrase: ");
+        try {
+            handleSMB_passphrase_bb();
+        } catch(RemoteException e) {
+            throw new RuntimeException();
+        }
     }
 
     public void handleSMB_contactName() {
-        String contactName = messageTextField.getText();
-        contactListModel.addElement(contactName);
+        contactListModel.addElement(this.contactName);
         System.out.println("Nieuw ContactListModel: " + contactListModel);
-        userList.setSelectedIndex(contactListModel.indexOf(contactName));
-        clearChatArea();
-        clearMessageTextField();
-        client.addContact(new ContactInfo(contactName, boxNumber_AB, boxNumber_BA, tag_AB, tag_BA, secretKey_AB, secretKey_BA));
+        userList.setSelectedIndex(contactListModel.indexOf(this.contactName));
+        client.addContact(new ContactInfo(this.contactName, boxNumber_AB, boxNumber_BA, tag_AB, tag_BA, secretKey_AB, secretKey_BA));
         resetContactInfo();
         currentState = AppState.DEFAULT;
         statusLabel.setText("Filled In Contactname");
@@ -279,22 +275,6 @@ public class UserInterface extends JFrame {
 
     public void showErrorDialog(String message) {
         JOptionPane.showMessageDialog(this, message, "Oopsie Woopsie! Something failed!", JOptionPane.ERROR_MESSAGE);
-    }
-
-    public void showBumpDialog() {
-        this.passPhrase = JOptionPane.showInputDialog("Your bump string is: " + bumpString + "\n Please enter a passphrase of your choice: ");
-    }
-
-    public void showBBSDialog() {
-        this.passPhrase = JOptionPane.showInputDialog("Please enter the bump string: ");
-    }
-
-    public void showBumpPassDialog() {
-        this.passPhrase = JOptionPane.showInputDialog("Please enter the passphrase: ");
-    }
-
-    public void showContactDialog() {
-        this.contactName = JOptionPane.showInputDialog("Please enter the contact's name: ");
     }
 
     public void clearUsernameTextField() {
