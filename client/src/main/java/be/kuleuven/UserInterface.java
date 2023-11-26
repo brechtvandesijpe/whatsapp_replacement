@@ -222,4 +222,9 @@ public class UserInterface extends JFrame {
     public String getContactAtIndex(int i) {
         return contactListModel.elementAt(i);
     }
+
+    public void removeContact(String name) {
+        contactListModel.removeElement(name);
+        userList.setSelectedValue(null, false);
+    }
 }

@@ -35,6 +35,7 @@ public class Client extends UnicastRemoteObject {
     private Map<String, Chat> chats;
     private Map<String, BulletinEntry> bulletinEntries_AB;
     private Map<String, BulletinEntry> bulletinEntries_BA;
+    private PeriodicMessageFetcher fetcher;
 
     public Client(String username, UserInterface ui) throws RemoteException {
         super();
@@ -53,7 +54,8 @@ public class Client extends UnicastRemoteObject {
     public void join() {
         try {
             connectToRMIServer();
-            new PeriodicMessageFetcher(this).start();
+            fetcher = new PeriodicMessageFetcher(this);
+            fetcher.start();
             ui.initiate(username);
         } catch(RemoteException e) {
             ui.showErrorDialog(e.getMessage());
@@ -112,7 +114,19 @@ public class Client extends UnicastRemoteObject {
         ui.addContact(contactName);
         chats.put(contactName, new Chat());
 
-        // TODO: send your own username in the first message
+        // TODO: send your own username in the first message & wait for the other's username
+        try {
+            sendMessage(contactName, username);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        ChatMessage message = null;
+        while (message == null) {
+            try {
+
+            } catch(Exception e) {}
+        }
     }
 
     public void bumpBack() {
@@ -163,6 +177,18 @@ public class Client extends UnicastRemoteObject {
         chats.put(contactName, new Chat());
 
         // TODO: read in the contactname and put your own in the new message
+        try {
+            sendMessage(contactName, username);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        ChatMessage message = null;
+        while (message == null) {
+            try {
+
+            } catch(Exception e) {}
+        }
     }
 
     public void leave() {
@@ -265,6 +291,7 @@ public class Client extends UnicastRemoteObject {
     public void fetchMessages(String contactName) throws NoSuchAlgorithmException, RemoteException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, InvalidKeySpecException, InvalidKeyException {
         BulletinEntry bulletinEntry_BA = bulletinEntries_BA.get(contactName);
         byte[] currentMessage  = bulletinBoard.getMessage(bulletinEntry_BA.getBoxNumber(), bulletinEntry_BA.getTag());
+
         while (currentMessage != null) {
             System.out.println("Proberen decrypteren met key: " + bulletinEntry_BA.getSecretKey());
             String newMessage = new String(SecurityManager.decryptMessage(currentMessage, bulletinEntry_BA.getSecretKey()));

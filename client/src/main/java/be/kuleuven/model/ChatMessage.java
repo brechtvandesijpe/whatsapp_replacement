@@ -9,6 +9,14 @@ public class ChatMessage {
         this.message = message;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
     @Override
     public String toString() {
         return username + ": " + message;

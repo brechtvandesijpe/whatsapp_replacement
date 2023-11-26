@@ -19,6 +19,9 @@ public class PeriodicMessageFetcher {
     public PeriodicMessageFetcher(Client client) {
         this.client = client;
     }
+    public PeriodicMessageFetcher(Client client, boolean stopWhenUsernameReceived) {
+        this.client = client;
+    }
 
     // Start fetching messages periodically
     public void start() {

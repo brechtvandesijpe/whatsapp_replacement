@@ -23,4 +23,8 @@ public class Contact {
         this.secretKey_AB = secretKey_AB;
         this.secretKey_BA = secretKey_BA;
     }
+
+    public void setContactName(String contactName) {
+        this.contactName = contactName;
+    }
 }
