@@ -1,4 +1,4 @@
-package be.kuleuven.Instances;
+package be.kuleuven.instances;
 
 import java.util.*;
 

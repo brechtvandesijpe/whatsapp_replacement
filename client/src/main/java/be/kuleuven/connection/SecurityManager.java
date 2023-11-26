@@ -1,4 +1,4 @@
-package be.kuleuven.Managers;
+package be.kuleuven.connection;
 
 import javax.crypto.*;
 import javax.crypto.spec.*;

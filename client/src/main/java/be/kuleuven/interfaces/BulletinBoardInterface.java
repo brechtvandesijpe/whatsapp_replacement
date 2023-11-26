@@ -1,4 +1,4 @@
-package be.kuleuven.Interfaces;
+package be.kuleuven.interfaces;
 
 import java.rmi.*;
 import java.security.*;

@@ -1,15 +1,14 @@
-package be.kuleuven.Instances;
+package be.kuleuven.connection;
 
-import javax.crypto.*;
-import java.util.*;
+import javax.crypto.SecretKey;
+import java.util.Base64;
 
 public class BulletinEntry {
     private int boxNumber;
     private byte[] tag;
     private SecretKey secretKey;
 
-    public BulletinEntry() {
-    }
+    public BulletinEntry() {}
 
     public BulletinEntry(int boxNumber, byte[] tag, SecretKey secretKey) {
         this.boxNumber = boxNumber;
@@ -41,7 +40,7 @@ public class BulletinEntry {
         this.secretKey = secretKey;
     }
 
-    // String representation of the BulletinEntry
+    @Override
     public String toString() {
         return Base64.getEncoder().encodeToString(secretKey.getEncoded()) + ";" + boxNumber + ";" + new String(tag);
     }

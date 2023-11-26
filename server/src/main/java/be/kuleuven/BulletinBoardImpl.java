@@ -1,7 +1,7 @@
 package be.kuleuven;
 
-import be.kuleuven.Instances.*;
-import be.kuleuven.Interfaces.*;
+import be.kuleuven.instances.*;
+import be.kuleuven.interfaces.BulletinBoardInterface;
 
 import java.net.*;
 import java.rmi.*;

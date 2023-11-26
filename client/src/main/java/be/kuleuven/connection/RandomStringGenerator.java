@@ -1,4 +1,4 @@
-package be.kuleuven.Util;
+package be.kuleuven.connection;
 
 import java.nio.charset.StandardCharsets;
 import java.security.*;

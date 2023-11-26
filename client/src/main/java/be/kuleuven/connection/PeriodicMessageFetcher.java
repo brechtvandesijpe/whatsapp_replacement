@@ -1,6 +1,4 @@
-package be.kuleuven.MessageHandling;
-
-import be.kuleuven.*;
+package be.kuleuven.connection;
 
 import javax.crypto.*;
 import java.io.IOException;
@@ -15,34 +13,30 @@ public class PeriodicMessageFetcher {
     // We could use some additive increase multiplicative decrease with a higher bound, instead of a fixed interval
     private static final int MESSAGE_FETCH_INTERVAL = 200;
     private final Client client;
-    private final UserInterface userInterface;
     private final Timer timer = new Timer();
 
     // Constructor to initialize PeriodicMessageFetcher with a Client and UserInterface instance
-    public PeriodicMessageFetcher(Client client, UserInterface userInterface) {
+    public PeriodicMessageFetcher(Client client) {
         this.client = client;
-        this.userInterface = userInterface;
     }
 
     // Start fetching messages periodically
-    public void startPeriodicMessageFetching() {
+    public void start() {
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
         Runnable task = () -> {
             try {
-                int[] selected = client.getUserInterface().getSelectedContacts();
+                int[] selected = client.getSelectedContacts();
                 if(selected.length > 0) {
                     // Fetch messages IF there are selected contacts
-                    client.getMessagesFrom(client.getUserInterface().getContactAtIndex(selected[selected.length - 1]));
-                    userInterface.saveState();
+                    String contactName = client.getUIContactAtIndex(selected[selected.length - 1]);
+                    client.fetchMessages(contactName);
                 }
             } catch (RemoteException | InvalidKeyException | BadPaddingException |
                      IllegalBlockSizeException | NoSuchAlgorithmException | InvalidKeySpecException e) {
                 e.printStackTrace();
             } catch (NoSuchPaddingException e) {
                 System.err.println("NoSuchPaddingException");
-                throw new RuntimeException(e);
-            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         };
@@ -52,7 +46,7 @@ public class PeriodicMessageFetcher {
 
     public void stopTimer() {
         timer.cancel();
-        System.err.println("Stopped PeriodicMessageFetcher of " + client.getName());
+        System.err.println("Stopped PeriodicMessageFetcher");
     }
 
     public Client getClient() {
