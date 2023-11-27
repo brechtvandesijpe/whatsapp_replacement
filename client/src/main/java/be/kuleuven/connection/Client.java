@@ -108,25 +108,25 @@ public class Client extends UnicastRemoteObject {
         SecretKey secretKey_BA = SecurityManager.getSymmetricKey(passphrase, tag_BA);
 
         String contactName = "<unnamed (bump back needed!)>";
-        contacts.put(contactName, new Contact(contactName, boxNumber_AB, boxNumber_BA, tag_AB, tag_BA, secretKey_AB, secretKey_BA));
-        bulletinEntries_AB.put(contactName, new BulletinEntry(boxNumber_AB, tag_AB, secretKey_AB));
-        bulletinEntries_BA.put(contactName, new BulletinEntry(boxNumber_BA, tag_BA, secretKey_BA));
-        ui.addContact(contactName);
-        chats.put(contactName, new Chat());
+        Contact contact = new Contact(contactName, boxNumber_AB, boxNumber_BA, tag_AB, tag_BA, secretKey_AB, secretKey_BA);
+        BulletinEntry bulletinEntry_AB = new BulletinEntry(boxNumber_AB, tag_AB, secretKey_AB);
+        BulletinEntry bulletinEntry_BA = new BulletinEntry(boxNumber_BA, tag_BA, secretKey_BA);
+        Chat chat = new Chat();
 
         // TODO: send your own username in the first message & wait for the other's username
         try {
-            sendMessage(contactName, username);
+            sendMessage(contactName, username, bulletinEntry_AB);
         } catch(Exception e) {
             e.printStackTrace();
         }
 
-        ChatMessage message = null;
-        while (message == null) {
-            try {
-
-            } catch(Exception e) {}
-        }
+        contactName = fetchName(bulletinEntry_BA);
+        contact.setContactName(contactName);
+        contacts.put(contactName, contact);
+        bulletinEntries_AB.put(contactName, bulletinEntry_AB);
+        bulletinEntries_BA.put(contactName, bulletinEntry_BA);
+        chats.put(contactName, chat);
+        ui.addContact(contactName);
     }
 
     public void bumpBack() {
@@ -170,25 +170,25 @@ public class Client extends UnicastRemoteObject {
         SecretKey secretKey_BA = SecurityManager.getSymmetricKey(passphrase, tag_BA);
 
         String contactName = "<unnamed (bump back needed!)>";
-        contacts.put(contactName, new Contact(contactName, boxNumber_AB, boxNumber_BA, tag_AB, tag_BA, secretKey_AB, secretKey_BA));
-        bulletinEntries_AB.put(contactName, new BulletinEntry(boxNumber_AB, tag_AB, secretKey_AB));
-        bulletinEntries_BA.put(contactName, new BulletinEntry(boxNumber_BA, tag_BA, secretKey_BA));
-        ui.addContact(contactName);
-        chats.put(contactName, new Chat());
+        Contact contact = new Contact(contactName, boxNumber_AB, boxNumber_BA, tag_AB, tag_BA, secretKey_AB, secretKey_BA);
+        BulletinEntry bulletinEntry_AB = new BulletinEntry(boxNumber_AB, tag_AB, secretKey_AB);
+        BulletinEntry bulletinEntry_BA = new BulletinEntry(boxNumber_BA, tag_BA, secretKey_BA);
+        Chat chat = new Chat();
 
         // TODO: read in the contactname and put your own in the new message
         try {
-            sendMessage(contactName, username);
+            sendMessage(contactName, username, bulletinEntry_AB);
         } catch(Exception e) {
             e.printStackTrace();
         }
 
-        ChatMessage message = null;
-        while (message == null) {
-            try {
-
-            } catch(Exception e) {}
-        }
+        contactName = fetchName(bulletinEntry_BA);
+        contact.setContactName(contactName);
+        contacts.put(contactName, contact);
+        bulletinEntries_AB.put(contactName, bulletinEntry_AB);
+        bulletinEntries_BA.put(contactName, bulletinEntry_BA);
+        chats.put(contactName, chat);
+        ui.addContact(contactName);
     }
 
     public void leave() {
@@ -209,16 +209,15 @@ public class Client extends UnicastRemoteObject {
         }
     }
 
-    public ChatMessage sendMessage(String contactName, String message) throws NoSuchAlgorithmException, NoSuchPaddingException,
+    public ChatMessage sendMessage(String contactName, String message, BulletinEntry bulletinEntry_AB) throws NoSuchAlgorithmException, NoSuchPaddingException,
             IllegalBlockSizeException, BadPaddingException, InvalidKeyException, RemoteException {
 
         if (!message.isEmpty()) {
-            BulletinEntry bulletinEntry_AB = bulletinEntries_AB.get(contactName);
             System.out.println(contactName);
 
             int boxNumber_AB = bulletinEntry_AB.getBoxNumber();
             byte[] tag_AB = Arrays.copyOf(bulletinEntry_AB.getTag(), bulletinEntry_AB.getTag().length);
-            String transformedMessage = transformMessage(contactName, message);
+            String transformedMessage = transformMessage(contactName, message, bulletinEntry_AB);
             System.out.println("TransformedMessage: " + transformedMessage);
             System.out.println("Sender: " + Arrays.toString(tag_AB) + ", " + boxNumber_AB);
             byte[] hashedMessage = MessageHandler.encryptMessage(transformedMessage.getBytes(), bulletinEntry_AB.getSecretKey());
@@ -229,6 +228,11 @@ public class Client extends UnicastRemoteObject {
         }
 
         return new ChatMessage(username, message);
+    }
+
+    public ChatMessage sendMessage(String contactName, String message) throws NoSuchAlgorithmException, NoSuchPaddingException,
+            IllegalBlockSizeException, BadPaddingException, InvalidKeyException, RemoteException {
+        return sendMessage(contactName, message, bulletinEntries_AB.get(contactName));
     }
 
     public void addMessage(String contactName, ChatMessage message) {
@@ -265,6 +269,10 @@ public class Client extends UnicastRemoteObject {
     }
 
     public String transformMessage(String contactName, String message) throws RemoteException {
+        return transformMessage(contactName, message, bulletinEntries_AB.get(contactName));
+    }
+
+    public String transformMessage(String contactName, String message, BulletinEntry bulletinEntry_AB) throws RemoteException {
         // Generate a random tag
         String randomTag = generateRandomTag();
 
@@ -272,7 +280,6 @@ public class Client extends UnicastRemoteObject {
         int newBoxNumber = getRandomMailboxNumber();
 
         // Update the BulletinEntry for the given friend
-        BulletinEntry bulletinEntry_AB = bulletinEntries_AB.get(contactName);
         bulletinEntry_AB.setTag(randomTag.getBytes());
         bulletinEntry_AB.setBoxNumber(newBoxNumber);
 
@@ -313,6 +320,38 @@ public class Client extends UnicastRemoteObject {
 
             currentMessage  = bulletinBoard.getMessage(bulletinEntry_BA.getBoxNumber(), bulletinEntry_BA.getTag());
         }
+    }
+
+    public String fetchName(BulletinEntry bulletinEntry_BA) {
+        byte[] currentMessage  = null;
+
+        while (currentMessage == null) {
+            try {
+                currentMessage = bulletinBoard.getMessage(bulletinEntry_BA.getBoxNumber(), bulletinEntry_BA.getTag());
+            } catch (NoSuchAlgorithmException | RemoteException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        System.out.println("Proberen decrypteren met key: " + bulletinEntry_BA.getSecretKey());
+        String newMessage = null;
+        try {
+            newMessage = new String(SecurityManager.decryptMessage(currentMessage, bulletinEntry_BA.getSecretKey()));
+        } catch (InvalidKeyException | NoSuchPaddingException | NoSuchAlgorithmException | IllegalBlockSizeException | BadPaddingException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Extraheren van de tag van index 0 tot 32 (32 bytes)
+        byte[] tag_BA = newMessage.substring(TAG_SUBSTRING_START, TAG_SUBSTRING_END).getBytes();
+        int boxNumber_BA = Integer.parseInt(newMessage.substring(BOX_NUMBER_SUBSTRING_START, BOX_NUMBER_SUBSTRING_END));
+        String message = newMessage.substring(BOX_NUMBER_SUBSTRING_END);
+
+        bulletinEntry_BA.setTag(tag_BA);
+        bulletinEntry_BA.setBoxNumber(boxNumber_BA);
+        System.out.println("Receiver: " + Arrays.toString(tag_BA) + ", " + boxNumber_BA);
+        bulletinEntry_BA.setSecretKey(SecurityManager.getSymmetricKey(Base64.getEncoder().encodeToString(bulletinEntry_BA.getSecretKey().getEncoded()), MessageHandler.deriveSalt(tag_BA)));
+
+        return message;
     }
 
     public String getUIContactAtIndex(int i) {
