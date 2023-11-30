@@ -92,7 +92,7 @@ public class Client extends UnicastRemoteObject {
         try {
             bulletinBoard = (BulletinBoardInterface) Naming.lookup("rmi://localhost/chat/");
             System.out.println("Verbonden met de RMI-server.\n");
-        } catch (NotBoundException | MalformedURLException | RemoteException e) {
+        } catch (NotBoundException | MalformedURLException e) {
             System.err.println("Fout bij verbinden met de RMI-server:");
             e.printStackTrace();
         }
