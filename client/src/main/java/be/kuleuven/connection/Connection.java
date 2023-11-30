@@ -10,7 +10,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.rmi.RemoteException;
 import java.security.InvalidKeyException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
@@ -21,15 +20,14 @@ public class Connection {
     private static final int TAG_SUBSTRING_END = 256;
     private static final int BOX_NUMBER_SUBSTRING_START = 256;
     private static final int BOX_NUMBER_SUBSTRING_END = 258;
-    private static final String HASH_ALGORITHM = "SHA-256";
     private final Chat chat;
-    private BulletinBoardInterface bulletinBoard;
+    private final BulletinBoardInterface bulletinBoard;
     private String name;
     private ConnectionInfo ab;
     private ConnectionInfo ba;
     private final PeriodicMessageFetcher fetcher;
-    private UserInterface ui;
-    private Client client;
+    private final UserInterface ui;
+    private final Client client;
     private boolean stopName;
 
     public Connection(String name, Chat chat, BulletinBoardInterface bulletinBoard, UserInterface ui, Client client) {
@@ -123,12 +121,6 @@ public class Connection {
         }
     }
 
-    public static byte[] hashTag(byte[] tag) throws NoSuchAlgorithmException {
-        // SHA-256 generates 256-bit (32 bytes) hash
-        MessageDigest messageDigest = MessageDigest.getInstance(HASH_ALGORITHM);
-        return messageDigest.digest(tag);
-    }
-
     public static byte[] deriveSalt(byte[] tag) {
         byte[] salt = new byte[256];
         System.arraycopy(tag, 1, salt, 0, 64);
@@ -196,7 +188,7 @@ public class Connection {
 
         byte[] tag_AB = RandomStringGenerator.deriveBytesFromPassphrase(passphrase);
         byte[] tag_BA = RandomStringGenerator.deriveBytesFromPassphrase(new StringBuilder(passphrase).reverse().toString());
-        System.out.println("Tag AB: " + tag_AB + ", Tag BA: " + tag_BA);
+        System.out.println("Tag AB: " + Arrays.toString(tag_AB) + ", Tag BA: " + Arrays.toString(tag_BA));
 
         SecretKey secretKey_AB = SecurityManager.getSymmetricKey(passphrase, tag_AB);
         SecretKey secretKey_BA = SecurityManager.getSymmetricKey(passphrase, tag_BA);
@@ -219,7 +211,7 @@ public class Connection {
 
         byte[] tag_BA = RandomStringGenerator.deriveBytesFromPassphrase(passphrase);
         byte[] tag_AB = RandomStringGenerator.deriveBytesFromPassphrase(new StringBuilder(passphrase).reverse().toString());
-        System.out.println("Tag AB: " + tag_AB + ", Tag BA: " + tag_BA);
+        System.out.println("Tag AB: " + Arrays.toString(tag_AB) + ", Tag BA: " + Arrays.toString(tag_BA));
 
         SecretKey secretKey_AB = SecurityManager.getSymmetricKey(passphrase, tag_AB);
         SecretKey secretKey_BA = SecurityManager.getSymmetricKey(passphrase, tag_BA);

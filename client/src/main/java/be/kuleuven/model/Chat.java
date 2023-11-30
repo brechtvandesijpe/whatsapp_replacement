@@ -5,8 +5,8 @@ import be.kuleuven.connection.Connection;
 import be.kuleuven.UserInterface;
 
 public class Chat extends ArrayList<ChatMessage> {
-    private ArrayList<Connection> connections;
-    private UserInterface ui;
+    private final ArrayList<Connection> connections;
+    private final UserInterface ui;
     private String name;
 
     public Chat(UserInterface ui, String name) {
@@ -41,7 +41,7 @@ public class Chat extends ArrayList<ChatMessage> {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         for (ChatMessage message : this) {
-            sb.append(message + "\n");
+            sb.append(message).append("\n");
         }
         return sb.toString();
     }

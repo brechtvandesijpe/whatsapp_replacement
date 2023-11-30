@@ -47,9 +47,8 @@ public class RandomStringGenerator {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
             byte[] passphraseBytes = passphrase.getBytes(StandardCharsets.UTF_8);
-            byte[] hash = digest.digest(passphraseBytes);
 
-            return hash;
+            return digest.digest(passphraseBytes);
         } catch (NoSuchAlgorithmException e) {
             System.err.println("deriveBytesFromPassphrase failed");
             e.printStackTrace();

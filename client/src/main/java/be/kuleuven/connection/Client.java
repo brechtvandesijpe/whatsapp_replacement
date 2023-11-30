@@ -12,26 +12,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Client extends UnicastRemoteObject {
-    private static final int TAG_SUBSTRING_START = 0;
-    private static final int TAG_SUBSTRING_END = 256;
-    private static final int BOX_NUMBER_SUBSTRING_START = 256;
-    private static final int BOX_NUMBER_SUBSTRING_END = 258;
-    private static final String HASH_ALGORITHM = "SHA-256";
-    private String username;
-    private UserInterface ui;
+    private final String username;
+    private final UserInterface ui;
     private BulletinBoardInterface bulletinBoard;
-    private PeriodicMessageFetcher fetcher;
-    private Map<String, Chat> chats;
+    private final Map<String, Chat> chats;
 
     public Client(String username, UserInterface ui) throws RemoteException {
         super();
         this.username = username;
         this.ui = ui;
         this.chats = new HashMap<>();
-    }
-
-    public String getUsername() {
-        return username;
     }
 
     public void join() {

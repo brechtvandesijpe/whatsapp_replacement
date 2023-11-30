@@ -4,17 +4,12 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import java.rmi.RemoteException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 public class MessageHandler {
-    private static final int TAG_SUBSTRING_START = 0;
-    private static final int TAG_SUBSTRING_END = 256;
-    private static final int BOX_NUMBER_SUBSTRING_START = 256;
-    private static final int BOX_NUMBER_SUBSTRING_END = 258;
     private static final String HASH_ALGORITHM = "SHA-256";
 
     public static byte[] hashTag(byte[] tag) throws NoSuchAlgorithmException {

@@ -8,11 +8,8 @@ import java.rmi.*;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.HashMap;
-import java.util.Map;
 
 import be.kuleuven.connection.RandomStringGenerator;
-import be.kuleuven.model.ChatMessage;
 import be.kuleuven.connection.Client;
 import be.kuleuven.model.Chat;
 
@@ -33,8 +30,8 @@ public class UserInterface extends JFrame {
     private JPanel panel2;
     private JScrollPane jscrollpane;
     private JButton restoreButton;
-    private DefaultListModel<String> contactListModel;
-    private Client client;
+    private final DefaultListModel<String> contactListModel;
+    private final Client client;
 
     public UserInterface(String title) {
         super(title);
@@ -76,11 +73,7 @@ public class UserInterface extends JFrame {
         bumpBackButton.addActionListener(e -> handleBumpBackButtonClick());
 
         restoreButton.addActionListener(e -> {
-            try {
-                handleRestoreButtonClick();
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
+
         });
 
         leaveButton.addActionListener(e -> {
@@ -114,14 +107,6 @@ public class UserInterface extends JFrame {
         statusLabel.setVisible(true);
         panel2.setVisible(true);
     }
-
-    // ******************* UPDATE UI **************************
-
-    public void setOwnUsername(String username) {
-        username_header.setText("Welcome " + username + "!");
-    }
-
-    // ***************** ButtonsClicks ************************
 
     public void handleJoinButtonClick() throws RemoteException {
         client.join();
@@ -175,21 +160,8 @@ public class UserInterface extends JFrame {
         client.leave();
     }
 
-    public void saveState() throws IOException {
-
-    }
-
-    public void handleRestoreButtonClick() throws IOException {
-
-    }
-
     public void handleSendMessageButtonClick() throws IOException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
         client.sendMessage(messageTextField.getText(), getSelectedContact());
-    }
-
-    public void appendChatArea(ChatMessage chatMessage) {
-        chatArea.append(chatMessage.toString() + "\n");
-        chatArea.setCaretPosition(chatArea.getDocument().getLength());
     }
 
     public void handleListSelectionChange(ListSelectionEvent listSelectionEvent) {
@@ -197,8 +169,6 @@ public class UserInterface extends JFrame {
         clearChatArea();
         chatArea.append(client.getChat(getSelectedContact()).toString());
     }
-
-    // HELPER METHODS
 
     public void showErrorDialog(String message) {
         JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
@@ -212,15 +182,6 @@ public class UserInterface extends JFrame {
         chatArea.setText("");
     }
 
-    public void clearMessageTextField() {
-        messageTextField.setText("");
-    }
-
-    public void showInChatArea(String message) {
-        chatArea.append(message);
-        chatArea.append("\n");
-    }
-
     public void setButtonsEnabled(boolean joinButton, boolean leaveButton, boolean bumpButton, boolean bumpBackButton, boolean sendMessageButton, boolean restoreButton) {
         this.joinButton.setEnabled(joinButton);
         this.leaveButton.setEnabled(leaveButton);
@@ -228,10 +189,6 @@ public class UserInterface extends JFrame {
         this.bumpBackButton.setEnabled(bumpBackButton);
         this.sendMessageButton.setEnabled(sendMessageButton);
         this.restoreButton.setEnabled(restoreButton);
-    }
-
-    public void setStatus(String status) {
-        statusLabel.setText(status);
     }
 
     public void initiate(String username) {
@@ -249,11 +206,6 @@ public class UserInterface extends JFrame {
 
     public String getSelectedContact(){
         return userList.getSelectedValue();
-    }
-
-    public void removeContact(String name) {
-        contactListModel.removeElement(name);
-        userList.setSelectedValue(null, false);
     }
 
     public void update(Chat chat) {
