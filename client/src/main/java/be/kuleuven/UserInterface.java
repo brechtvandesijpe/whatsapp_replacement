@@ -10,6 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
 
+import be.kuleuven.connection.RandomStringGenerator;
 import be.kuleuven.model.ChatMessage;
 import be.kuleuven.connection.Client;
 import be.kuleuven.model.Chat;
@@ -33,7 +34,7 @@ public class UserInterface extends JFrame {
     private JButton restoreButton;
     private DefaultListModel<String> contactListModel;
     private Client client;
-    private Map<String, Chat> messages;
+    private Map<String, Chat> chats;
 
     public UserInterface(String title) {
         super(title);
@@ -94,6 +95,7 @@ public class UserInterface extends JFrame {
     }
 
     public static void main(String[] args) {
+        System.out.println("Hello world");
         new UserInterface("Whatsapp replacement");
     }
 
@@ -126,11 +128,47 @@ public class UserInterface extends JFrame {
     }
 
     public void handleBumpButtonClick() {
-        client.bump();
+        String bumpstring = RandomStringGenerator.generateRandomString(10);
+
+        JTextField passphraseField = new JTextField(20);
+        passphraseField.setText(bumpstring);
+        passphraseField.setEditable(false);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.add(new JLabel("Your bumpstring is:"));
+        panel.add(passphraseField);
+        panel.add(new JLabel("Please enter the passphrase of your choice: "));
+
+        String passphrase = "";
+        while (passphrase.isEmpty()) {
+            passphrase = JOptionPane.showInputDialog(null, panel, "Bump", JOptionPane.PLAIN_MESSAGE);
+            if (passphrase.isEmpty()) {
+                showErrorDialog("Your passphrase cannot be empty!");
+            }
+        }
+
+        client.bump(bumpstring, passphrase);
     }
 
     public void handleBumpBackButtonClick() {
-        client.bumpBack();
+        String bumpstring = "";
+        while (bumpstring.isEmpty()) {
+            bumpstring = JOptionPane.showInputDialog("Please enter the bumpstring: ");
+            if (bumpstring.isEmpty()) {
+                showErrorDialog("Your passphrase cannot be empty!");
+            }
+        }
+
+        String passphrase = "";
+        while (passphrase.isEmpty()) {
+            passphrase = JOptionPane.showInputDialog("Please enter the passphrase: ");
+            if (passphrase.isEmpty()) {
+                showErrorDialog("Your passphrase cannot be empty!");
+            }
+        }
+
+        client.bumpBack(bumpstring, passphrase);
     }
 
     public void handleLeaveButtonClick() {
@@ -146,13 +184,7 @@ public class UserInterface extends JFrame {
     }
 
     public void handleSendMessageButtonClick() throws IOException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
-        int index = userList.getSelectedIndex();
-        if (index != -1) {
-            String message = messageTextField.getText();
-            ChatMessage chatMessage = client.sendMessage(contactListModel.getElementAt(index), message);
-            appendChatArea(chatMessage);
-            clearMessageTextField();
-        }
+        client.sendMessage(messageTextField.getText(), getSelectedContact());
     }
 
     public void appendChatArea(ChatMessage chatMessage) {
@@ -165,7 +197,7 @@ public class UserInterface extends JFrame {
         if (!userList.getValueIsAdjusting()) return;
         clearChatArea();
         System.out.println("contactListModel" + contactListModel);
-        chatArea.append(messages.get(userList.getSelectedValue()).toString());
+        chatArea.append(chats.get(getSelectedContact()).toString());
     }
 
     // HELPER METHODS
@@ -211,20 +243,23 @@ public class UserInterface extends JFrame {
     }
 
     public void addContact(String name) {
+        System.out.println("add contact " + name);
         contactListModel.addElement(name);
         userList.setSelectedValue(name, false);
     }
 
-    public int[] getSelectedContacts(){
-        return userList.getSelectedIndices();
-    }
-
-    public String getContactAtIndex(int i) {
-        return contactListModel.elementAt(i);
+    public String getSelectedContact(){
+        return userList.getSelectedValue();
     }
 
     public void removeContact(String name) {
         contactListModel.removeElement(name);
         userList.setSelectedValue(null, false);
+    }
+
+    public void update(Chat chat) {
+        if (getSelectedContact() == chat.getName()) {
+            chatArea.setText(chat.toString());
+        }
     }
 }
