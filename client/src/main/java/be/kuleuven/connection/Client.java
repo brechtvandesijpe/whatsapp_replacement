@@ -56,7 +56,7 @@ public class Client extends UnicastRemoteObject {
             e.printStackTrace();
         }
 
-        connection.startNameFetch();
+        connection.startFetcher();
         String name = connection.getName();
         chat.setName(name);
         chats.put(name, chat);
@@ -74,7 +74,7 @@ public class Client extends UnicastRemoteObject {
             e.printStackTrace();
         }
 
-        connection.startNameFetch();
+        connection.startFetcher();
         String name = connection.getName();
         chat.setName(name);
         chats.put(name, chat);

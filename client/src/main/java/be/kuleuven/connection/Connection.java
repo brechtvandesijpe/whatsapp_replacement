@@ -57,7 +57,6 @@ public class Connection {
 
     private void setName(String name) {
         this.name = name;
-        fetcher.start();
         ui.addContact(name);
     }
 
@@ -87,23 +86,36 @@ public class Connection {
     public void sendMessage(ChatMessage message) {
         chat.add(message);
 
-        byte[] encryptedMessage = message.encrypt(ab.getSecretKey());
-
-        byte[] tag = Arrays.copyOf(ab.getTag(), ab.getTag().length);
-
-        // Build the final message format
+        int boxNumber_AB = ab.getBoxNumber();
+        byte[] tag_AB = Arrays.copyOf(ab.getTag(), ab.getTag().length);
         String transformedMessage = transformMessage(message.getMessage());
-        ChatMessage sentMessage = new ChatMessage("local", transformedMessage);
-
-        byte[] hashedMessage = sentMessage.encrypt(ab.getSecretKey());
+        System.out.println("TransformedMessage: " + transformedMessage);
+        System.out.println("Sender: " + Arrays.toString(tag_AB) + ", " + boxNumber_AB);
+        byte[] hashedMessage = new byte[0];
         try {
-            byte[] hashedTag = MessageDigest.getInstance(HASH_ALGORITHM).digest(tag);
+            hashedMessage = MessageHandler.encryptMessage(transformedMessage.getBytes(), ab.getSecretKey());
+        } catch (NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InvalidKeyException |
+                 NoSuchAlgorithmException e) {
+
+
+        }
+        byte[] hashedTag
+                ;
+        try {
+            hashedTag = MessageHandler.hashTag(tag_AB);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
 
+        MessageHandler.deriveAndUpdateSecretKey(ab);
         try {
-            bulletinBoard.postMessage(ab.getBoxNumber(), encryptedMessage, ab.getTag());
+            bulletinBoard.postMessage(boxNumber_AB, hashedMessage, hashedTag);
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            bulletinBoard.postMessage(ab.getBoxNumber(), hashedMessage, hashedTag);
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }
@@ -115,17 +127,15 @@ public class Connection {
         return messageDigest.digest(tag);
     }
 
-    public void startNameFetch() {
-        fetcher.startNamefetch();
-    }
-
     public static byte[] deriveSalt(byte[] tag) {
         byte[] salt = new byte[256];
         System.arraycopy(tag, 1, salt, 0, 64);
         return salt;
     }
 
-    public void fetchMessages(boolean stopName) {
+    public void fetchMessages() {
+        boolean stopName = true;
+
         byte[] message;
 
         try {
@@ -159,7 +169,7 @@ public class Connection {
             if (!stopName) chat.add(new ChatMessage(name, payload));
             else {
                 setName(payload);
-                break;
+                stopName = false;
             }
         }
     }
@@ -169,8 +179,8 @@ public class Connection {
         int boxNumber_BA;
 
         try {
-            boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(passphrase)) % bulletinBoard.getAmountOfMailboxes();
-            boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(passphrase).reverse().toString())) % bulletinBoard.getAmountOfMailboxes();
+            boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(bumpstring)) % bulletinBoard.getAmountOfMailboxes();
+            boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(bumpstring).reverse().toString())) % bulletinBoard.getAmountOfMailboxes();
             System.out.println("Boxnumber AB: " + boxNumber_AB + ", BoxNumber BA: " + boxNumber_BA);
         } catch(RemoteException ex) {
             throw new RuntimeException();
@@ -192,8 +202,8 @@ public class Connection {
         int boxNumber_BA;
 
         try {
-            boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(passphrase)) % bulletinBoard.getAmountOfMailboxes();
-            boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(passphrase).reverse().toString())) % bulletinBoard.getAmountOfMailboxes();
+            boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(bumpstring)) % bulletinBoard.getAmountOfMailboxes();
+            boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(bumpstring).reverse().toString())) % bulletinBoard.getAmountOfMailboxes();
             System.out.println("Boxnumber AB: " + boxNumber_AB + ", BoxNumber BA: " + boxNumber_BA);
         } catch(RemoteException ex) {
             throw new RuntimeException();
@@ -208,5 +218,9 @@ public class Connection {
 
         this.ab = new ConnectionInfo(boxNumber_AB, tag_AB, secretKey_AB);
         this.ba = new ConnectionInfo(boxNumber_BA, tag_BA, secretKey_BA);
+    }
+
+    public void startFetcher() {
+        fetcher.start();
     }
 }

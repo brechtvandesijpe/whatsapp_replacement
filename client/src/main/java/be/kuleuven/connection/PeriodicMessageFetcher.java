@@ -21,20 +21,6 @@ public class PeriodicMessageFetcher {
         this.connection = connection;
     }
 
-    public void startNamefetch() {
-        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-
-        Runnable task = new Runnable() {
-            @Override
-            public void run() {
-                connection.fetchMessages(true); // Assuming connection is available
-            }
-        };
-
-        // Schedule the task at a fixed rate with the specified interval
-        executorService.scheduleAtFixedRate(task, 0, MESSAGE_FETCH_INTERVAL, TimeUnit.MILLISECONDS);
-    }
-
     // Start fetching messages periodically
     public void start() {
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
@@ -42,7 +28,7 @@ public class PeriodicMessageFetcher {
         Runnable task = new Runnable() {
             @Override
             public void run() {
-                connection.fetchMessages(false); // Assuming connection is available
+                connection.fetchMessages(); // Assuming connection is available
             }
         };
 
