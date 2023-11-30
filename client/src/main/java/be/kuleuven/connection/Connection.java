@@ -136,39 +136,48 @@ public class Connection {
     }
 
     public void fetchMessages() {
-        byte[] message;
+        byte[] message = null;
 
         try {
-            System.out.println("fetch " + stopName);
             message = bulletinBoard.getMessage(ba.getBoxNumber(), ba.getTag());
         } catch (NoSuchAlgorithmException | RemoteException e) {
-            throw new RuntimeException(e);
+//            System.out.println(e.getMessage());
         }
+
+//        System.out.println("fetch " + stopName + " (" + message + ")");
 
         while (message != null) {
             String newMessage = null;
+//            System.out.println(message);
 
             try {
                 newMessage = new String(SecurityManager.decryptMessage(message, ba.getSecretKey()));
+
+                byte[] tag = newMessage.substring(TAG_SUBSTRING_START, TAG_SUBSTRING_END).getBytes();
+                int boxNumber = Integer.parseInt(newMessage.substring(BOX_NUMBER_SUBSTRING_START, BOX_NUMBER_SUBSTRING_END));
+                String payload = newMessage.substring(BOX_NUMBER_SUBSTRING_END);
+
+                ba.setTag(tag);
+                ba.setBoxNumber(boxNumber);
+                System.out.println("Receiver: " + Arrays.toString(tag) + ", " + boxNumber);
+                ba.setSecretKey(SecurityManager.getSymmetricKey(Base64.getEncoder().encodeToString(ba.getSecretKey().getEncoded()), deriveSalt(tag)));
+
+                System.out.println("found " + payload + " " + stopName);
+                if (stopName) {
+                    setName(payload);
+                    stopName = false;
+                } else {
+                    chat.add(new ChatMessage(name, payload));
+                }
             } catch (InvalidKeyException | NoSuchPaddingException | NoSuchAlgorithmException |
                      IllegalBlockSizeException | BadPaddingException e) {
-                throw new RuntimeException(e);
+//                System.out.println(e.getMessage());
             }
 
-            byte[] tag = newMessage.substring(TAG_SUBSTRING_START, TAG_SUBSTRING_END).getBytes();
-            int boxNumber = Integer.parseInt(newMessage.substring(BOX_NUMBER_SUBSTRING_START, BOX_NUMBER_SUBSTRING_END));
-            String payload = newMessage.substring(BOX_NUMBER_SUBSTRING_END);
-
-            ba.setTag(tag);
-            ba.setBoxNumber(boxNumber);
-            System.out.println("Receiver: " + Arrays.toString(tag) + ", " + boxNumber);
-            ba.setSecretKey(SecurityManager.getSymmetricKey(Base64.getEncoder().encodeToString(ba.getSecretKey().getEncoded()), deriveSalt(tag)));
-
-            System.out.println("found " + payload + " " + stopName);
-            if (!stopName) chat.add(new ChatMessage(name, payload));
-            else {
-                setName(payload);
-                stopName = false;
+            try {
+                message  = bulletinBoard.getMessage(ba.getBoxNumber(), ba.getTag());
+            } catch (NoSuchAlgorithmException | RemoteException e) {
+                throw new RuntimeException(e);
             }
         }
     }
