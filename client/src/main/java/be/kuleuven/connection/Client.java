@@ -45,39 +45,35 @@ public class Client extends UnicastRemoteObject {
     }
 
     public void bump(String bumpstring, String passphrase) {
-        Chat chat = new Chat(ui, "bump back needed");
-        Connection connection = new Connection("bump back needed", chat, ui, bulletinBoard);
+        Chat chat = new Chat(ui, bumpstring);
+        Connection connection = new Connection(bumpstring, chat, bulletinBoard, ui, this);
         connection.bump(bumpstring, passphrase);
         chat.add(connection);
 
         try {
-            connection.sendMessage(new ChatMessage(username, username));
+            connection.sendMessage(true, new ChatMessage(username, username));
         } catch(Exception e) {
             e.printStackTrace();
         }
 
         connection.startFetcher();
-        String name = connection.getName();
-        chat.setName(name);
-        chats.put(name, chat);
+        chats.put(bumpstring, chat);
     }
 
     public void bumpBack(String bumpstring, String passphrase) {
-        Chat chat = new Chat(ui, "bump back needed");
-        Connection connection = new Connection("bump back needed", chat, ui, bulletinBoard);
+        Chat chat = new Chat(ui, bumpstring);
+        Connection connection = new Connection(bumpstring, chat, bulletinBoard, ui, this);
         connection.bumpBack(bumpstring, passphrase);
         chat.add(connection);
 
         try {
-            connection.sendMessage(new ChatMessage(username, username));
+            connection.sendMessage(true, new ChatMessage(username, username));
         } catch(Exception e) {
             e.printStackTrace();
         }
 
         connection.startFetcher();
-        String name = connection.getName();
-        chat.setName(name);
-        chats.put(name, chat);
+        chats.put(bumpstring, chat);
     }
 
     public void leave() {
@@ -99,9 +95,19 @@ public class Client extends UnicastRemoteObject {
     }
 
     public void sendMessage(String text, String selectedContact) {
+        System.out.println("Sending " + text + " to " + selectedContact);
         Chat chat = chats.get(selectedContact);
-        ChatMessage message = new ChatMessage(username, text);
-        chat.sendMessage(message);
-        chat.add(message);
+        chat.sendMessage(new ChatMessage(username, text));
+    }
+
+    public void changeChatName(String oldName, String newName) {
+        Chat chat = chats.get(oldName);
+        chat.setName(newName);
+        chats.remove(oldName);
+        chats.put(newName, chat);
+    }
+
+    public Object getChat(String selectedContact) {
+        return chats.get(selectedContact);
     }
 }

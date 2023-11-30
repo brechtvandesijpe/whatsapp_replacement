@@ -29,13 +29,17 @@ public class Connection {
     private ConnectionInfo ba;
     private final PeriodicMessageFetcher fetcher;
     private UserInterface ui;
+    private Client client;
+    private boolean stopName;
 
-    public Connection(String name, Chat chat, UserInterface ui, BulletinBoardInterface bulletinBoard) {
+    public Connection(String name, Chat chat, BulletinBoardInterface bulletinBoard, UserInterface ui, Client client) {
+        this.name = name;
         this.chat = chat;
         this.bulletinBoard = bulletinBoard;
-        this.name = name;
         this.fetcher = new PeriodicMessageFetcher(this);
         this.ui = ui;
+        this.client = client;
+        this.stopName = true;
     }
 
     private static char getRandomChar() {
@@ -56,8 +60,11 @@ public class Connection {
     }
 
     private void setName(String name) {
+        client.changeChatName(this.name, name);
         this.name = name;
+        chat.setName(name);
         ui.addContact(name);
+        fetcher.start();
     }
 
     public String getName() {
@@ -83,39 +90,34 @@ public class Connection {
         return randomTag + String.format("%02d", newBoxNumber) + message;
     }
 
-    public void sendMessage(ChatMessage message) {
-        chat.add(message);
+    public void sendMessage(boolean isInitial, ChatMessage message) {
+        if(!isInitial) chat.add(message);
 
-        int boxNumber_AB = ab.getBoxNumber();
-        byte[] tag_AB = Arrays.copyOf(ab.getTag(), ab.getTag().length);
+        int boxNumber = ab.getBoxNumber();
+        byte[] tag = Arrays.copyOf(ab.getTag(), ab.getTag().length);
         String transformedMessage = transformMessage(message.getMessage());
         System.out.println("TransformedMessage: " + transformedMessage);
-        System.out.println("Sender: " + Arrays.toString(tag_AB) + ", " + boxNumber_AB);
-        byte[] hashedMessage = new byte[0];
+        System.out.println("Sender: " + Arrays.toString(tag) + ", " + boxNumber);
+        byte[] hashedMessage;
+
         try {
             hashedMessage = MessageHandler.encryptMessage(transformedMessage.getBytes(), ab.getSecretKey());
         } catch (NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InvalidKeyException |
                  NoSuchAlgorithmException e) {
-
-
+            throw new RuntimeException(e);
         }
-        byte[] hashedTag
-                ;
+
+        byte[] hashedTag;
         try {
-            hashedTag = MessageHandler.hashTag(tag_AB);
+            hashedTag = MessageHandler.hashTag(tag);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
 
         MessageHandler.deriveAndUpdateSecretKey(ab);
-        try {
-            bulletinBoard.postMessage(boxNumber_AB, hashedMessage, hashedTag);
-        } catch (RemoteException e) {
-            throw new RuntimeException(e);
-        }
 
         try {
-            bulletinBoard.postMessage(ab.getBoxNumber(), hashedMessage, hashedTag);
+            bulletinBoard.postMessage(boxNumber, hashedMessage, hashedTag);
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }
@@ -134,17 +136,14 @@ public class Connection {
     }
 
     public void fetchMessages() {
-        boolean stopName = true;
-
         byte[] message;
 
         try {
+            System.out.println("fetch " + stopName);
             message = bulletinBoard.getMessage(ba.getBoxNumber(), ba.getTag());
         } catch (NoSuchAlgorithmException | RemoteException e) {
             throw new RuntimeException(e);
         }
-
-        System.out.println("fetch " + stopName);
 
         while (message != null) {
             String newMessage = null;

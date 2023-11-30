@@ -8,6 +8,7 @@ import java.rmi.*;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.HashMap;
 import java.util.Map;
 
 import be.kuleuven.connection.RandomStringGenerator;
@@ -34,7 +35,6 @@ public class UserInterface extends JFrame {
     private JButton restoreButton;
     private DefaultListModel<String> contactListModel;
     private Client client;
-    private Map<String, Chat> chats;
 
     public UserInterface(String title) {
         super(title);
@@ -193,11 +193,9 @@ public class UserInterface extends JFrame {
     }
 
     public void handleListSelectionChange(ListSelectionEvent listSelectionEvent) {
-        System.out.println("Userlist: " + userList.getSize());
         if (!userList.getValueIsAdjusting()) return;
         clearChatArea();
-        System.out.println("contactListModel" + contactListModel);
-        chatArea.append(chats.get(getSelectedContact()).toString());
+        chatArea.append(client.getChat(getSelectedContact()).toString());
     }
 
     // HELPER METHODS
@@ -244,6 +242,7 @@ public class UserInterface extends JFrame {
 
     public void addContact(String name) {
         System.out.println("add contact " + name);
+
         contactListModel.addElement(name);
         userList.setSelectedValue(name, false);
     }

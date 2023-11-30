@@ -24,7 +24,7 @@ public class Chat extends ArrayList<ChatMessage> {
         for (Connection connection : connections) {
             System.out.println("Sending message to " + connection.getName());
             try {
-                connection.sendMessage(message);
+                connection.sendMessage(false, message);
             } catch(Exception e) {
                 e.printStackTrace();
             }
