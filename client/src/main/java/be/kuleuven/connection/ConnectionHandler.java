@@ -5,26 +5,10 @@ import be.kuleuven.model.Chat;
 import be.kuleuven.model.ChatMessage;
 import be.kuleuven.interfaces.BulletinBoardInterface;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.rmi.RemoteException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Base64;
-import javax.crypto.SecretKey;
-
 public class ConnectionHandler {
     private final Chat chat;
     private final BulletinBoardInterface bulletinBoard;
     private String name;
-    private ConnectionInfo ab;
-    private ConnectionInfo ba;
-    private final UserInterface ui;
-    private final Client client;
-    private boolean stopName;
-
     private DataConnection dataConnection;
     private MetaConnection metaConnection;
 
@@ -32,8 +16,6 @@ public class ConnectionHandler {
         this.name = name;
         this.chat = chat;
         this.bulletinBoard = bulletinBoard;
-        this.ui = ui;
-        this.client = client;
         metaConnection = new MetaConnection(bulletinBoard, chat, ui, client, this);
     }
 

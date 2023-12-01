@@ -77,7 +77,6 @@ public class Client extends UnicastRemoteObject {
         Chat chat = chats.get(chatName.hashCode());
         chats.remove(chatName.hashCode());
         chat.setName(chatName);
-        System.out.println(chatIndex + " -> " + chatName);
         chats.put(chatIndex, chat);
     }
 
