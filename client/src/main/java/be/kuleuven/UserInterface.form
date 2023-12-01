@@ -16,17 +16,6 @@
         </constraints>
         <properties/>
       </component>
-      <component id="4983" class="javax.swing.JTextField" binding="usernameTextField">
-        <constraints>
-          <grid row="4" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="-1"/>
-          </grid>
-        </constraints>
-        <properties>
-          <horizontalAlignment value="0"/>
-          <text value="John Smith"/>
-        </properties>
-      </component>
       <component id="4555d" class="javax.swing.JTextArea" binding="chatArea">
         <constraints>
           <grid row="1" column="0" row-span="3" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
@@ -132,6 +121,14 @@
         </constraints>
         <properties>
           <text value="Restore"/>
+        </properties>
+      </component>
+      <component id="b056f" class="javax.swing.JButton" binding="addUserToChatButton" default-binding="true">
+        <constraints>
+          <grid row="4" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Add user to chat"/>
         </properties>
       </component>
     </children>

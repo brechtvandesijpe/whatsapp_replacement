@@ -53,4 +53,16 @@ public class Chat extends ArrayList<ChatMessage> {
     public void setName(String name) {
         this.name = name;
     }
+
+    public String[] sendBump() {
+        // Array of bumpstring the new client has to bump with, you first bump with the client you add and then send this
+        // array as the second message so he can add every single one of them and bump with them
+        String[] result = new String[connections.size()];
+
+        for (Connection connection : connections) {
+            result[connections.indexOf(connection)] = connection.sendBump();
+        }
+
+        return result;
+    }
 }

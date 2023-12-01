@@ -57,11 +57,11 @@ public class Connection {
         return tagBuilder.toString();
     }
 
-    private void setName(String name) {
-        client.changeChatName(this.name, name);
+    private void setName(String oldName, String name) {
+        int index = ui.addContact(name);
+        client.changeChatName(index, oldName);
         this.name = name;
         chat.setName(name);
-        ui.addContact(name);
         fetcher.start();
     }
 
@@ -156,7 +156,7 @@ public class Connection {
 
                 System.out.println("found " + payload + " " + stopName);
                 if (stopName) {
-                    setName(payload);
+                    setName(name, payload);
                     stopName = false;
                 } else {
                     chat.add(new ChatMessage(name, payload));
@@ -222,5 +222,11 @@ public class Connection {
 
     public void startFetcher() {
         fetcher.start();
+    }
+
+    public String sendBump() {
+        String bumpstring = RandomStringGenerator.generateRandomString(10);
+        // TODO: send the bumpstring in the group, let them bump with it and make sure they add it to the same chat as connection
+        return bumpstring;
     }
 }

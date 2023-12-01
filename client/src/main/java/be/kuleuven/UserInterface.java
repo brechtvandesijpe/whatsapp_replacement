@@ -17,7 +17,6 @@ import be.kuleuven.model.Chat;
 public class UserInterface extends JFrame {
     private JPanel panel;
     private JTextField messageTextField;
-    private JTextField usernameTextField;
     private JTextArea chatArea;
     private JList<String> userList;
     private JButton joinButton;
@@ -30,6 +29,7 @@ public class UserInterface extends JFrame {
     private JPanel panel2;
     private JScrollPane jscrollpane;
     private JButton restoreButton;
+    private JButton addUserToChatButton;
     private final DefaultListModel<String> contactListModel;
     private final Client client;
 
@@ -80,9 +80,12 @@ public class UserInterface extends JFrame {
             handleLeaveButtonClick();
         });
 
+        addUserToChatButton.addActionListener(e -> {
+            handleAddUserToChatButtonClick();
+        });
+
         messageTextField.requestFocus();
         this.getRootPane().setDefaultButton(joinButton);
-        usernameTextField.setEnabled(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
     }
@@ -95,7 +98,6 @@ public class UserInterface extends JFrame {
     // Method to set all graphical components visible
     public void setAllComponentsVisible() {
         messageTextField.setVisible(true);
-        usernameTextField.setVisible(true);
         chatArea.setVisible(true);
         userList.setVisible(true);
         joinButton.setVisible(true);
@@ -170,12 +172,12 @@ public class UserInterface extends JFrame {
         chatArea.append(client.getChat(getSelectedContact()).toString());
     }
 
-    public void showErrorDialog(String message) {
-        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
+    private void handleAddUserToChatButtonClick() {
+        client.addUserToChat(getSelectedContact());
     }
 
-    public void clearUsernameTextField() {
-        usernameTextField.setText("");
+    public void showErrorDialog(String message) {
+        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     public void clearChatArea() {
@@ -192,24 +194,24 @@ public class UserInterface extends JFrame {
     }
 
     public void initiate(String username) {
-        clearUsernameTextField();
         setButtonsEnabled(false, true, true, true, true,  true);
         statusLabel.setText("You successfully joined as " + username);
     }
 
-    public void addContact(String name) {
+    public int addContact(String name) {
         System.out.println("add contact " + name);
 
         contactListModel.addElement(name);
         userList.setSelectedValue(name, false);
+        return contactListModel.getSize() - 1;
     }
 
-    public String getSelectedContact(){
-        return userList.getSelectedValue();
+    public int getSelectedContact(){
+        return userList.getSelectedIndex();
     }
 
     public void update(Chat chat) {
-        if (getSelectedContact() == chat.getName()) {
+        if (client.isChat(getSelectedContact(), chat)) {
             chatArea.setText(chat.toString());
         }
     }

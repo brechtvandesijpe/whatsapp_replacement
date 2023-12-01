@@ -15,13 +15,15 @@ public class Client extends UnicastRemoteObject {
     private final String username;
     private final UserInterface ui;
     private BulletinBoardInterface bulletinBoard;
-    private final Map<String, Chat> chats;
+    private final Map<Integer, Chat> chats;
+    private final Map<Integer, String> bumpstrings;
 
     public Client(String username, UserInterface ui) throws RemoteException {
         super();
         this.username = username;
         this.ui = ui;
         this.chats = new HashMap<>();
+        this.bumpstrings = new HashMap<>();
     }
 
     public void join() {
@@ -47,7 +49,7 @@ public class Client extends UnicastRemoteObject {
         }
 
         connection.startFetcher();
-        chats.put(bumpstring, chat);
+        chats.put(bumpstring.hashCode(), chat);
     }
 
     public void bumpBack(String bumpstring, String passphrase) {
@@ -63,7 +65,7 @@ public class Client extends UnicastRemoteObject {
         }
 
         connection.startFetcher();
-        chats.put(bumpstring, chat);
+        chats.put(bumpstring.hashCode(), chat);
     }
 
     public void leave() {
@@ -84,20 +86,36 @@ public class Client extends UnicastRemoteObject {
         }
     }
 
-    public void sendMessage(String text, String selectedContact) {
-        System.out.println("Sending " + text + " to " + selectedContact);
+    public void sendMessage(String text, int selectedContact) {
+        System.out.println("get " + selectedContact);
         Chat chat = chats.get(selectedContact);
+        System.out.println("Sending " + text + " to " + chat.getName());
         chat.sendMessage(new ChatMessage(username, text));
     }
 
-    public void changeChatName(String oldName, String newName) {
-        Chat chat = chats.get(oldName);
-        chat.setName(newName);
-        chats.remove(oldName);
-        chats.put(newName, chat);
+    public void changeChatName(int chatIndex, String chatName) {
+        Chat chat = chats.get(chatName.hashCode());
+        chats.remove(chatName.hashCode());
+        System.out.println(chatIndex + " -> " + chatName);
+        chats.put(chatIndex, chat);
     }
 
-    public Object getChat(String selectedContact) {
+    public Object getChat(int selectedContact) {
         return chats.get(selectedContact);
+    }
+
+    public void addUserToChat(int selectedChat) {
+        String chatName = bumpstrings.get(selectedChat);
+        Chat chat = chats.get(chatName);
+        Connection connection = new Connection(chatName, chat, bulletinBoard, ui, this);
+        connection.startFetcher();
+        chat.add(connection);
+
+        // Let everyone in the group bump with you and bump with them too
+        chat.sendBump();
+    }
+
+    public boolean isChat(int selectedContact, Chat chat) {
+        return chats.get(selectedContact) == chat;
     }
 }
