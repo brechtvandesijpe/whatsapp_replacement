@@ -17,7 +17,9 @@ public class Chat extends ArrayList<ChatMessage> {
     }
 
     public void add(ConnectionHandler connectionHandler) {
-        connectionHandlers.add(connectionHandler);
+        synchronized(this) {
+            connectionHandlers.add(connectionHandler);
+        }
     }
 
     public void sendMessage(ChatMessage message) {
@@ -31,18 +33,22 @@ public class Chat extends ArrayList<ChatMessage> {
     }
 
     public boolean add(ChatMessage message) {
-        boolean result = super.add(message);
-        ui.update(this);
-        return result;
+        synchronized(this) {
+            boolean result = super.add(message);
+            ui.update(this);
+            return result;
+        }
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        for (ChatMessage message : this) {
-            sb.append(message).append("\n");
+        synchronized(this) {
+            StringBuilder sb = new StringBuilder();
+            for (ChatMessage message : this) {
+                sb.append(message).append("\n");
+            }
+            return sb.toString();
         }
-        return sb.toString();
     }
 
     public String getName() {
@@ -52,16 +58,20 @@ public class Chat extends ArrayList<ChatMessage> {
     public String[] sendBump() {
         // Array of bumpstring the new client has to bump with, you first bump with the client you add and then send this
         // array as the second message so he can add every single one of them and bump with them
-        String[] result = new String[connectionHandlers.size()];
+        synchronized(this) {
+            String[] result = new String[connectionHandlers.size()];
 
-        for (ConnectionHandler connectionHandler : connectionHandlers) {
-            result[connectionHandlers.indexOf(connectionHandler)] = connectionHandler.sendBump();
+            for (ConnectionHandler connectionHandler : connectionHandlers) {
+                result[connectionHandlers.indexOf(connectionHandler)] = connectionHandler.sendBump();
+            }
+
+            return result;
         }
-
-        return result;
     }
 
     public void setName(String chatName) {
-        this.name = chatName;
+        synchronized(this) {
+            this.name = chatName;
+        }
     }
 }

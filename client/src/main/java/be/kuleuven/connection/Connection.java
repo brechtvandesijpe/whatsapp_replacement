@@ -17,6 +17,7 @@ public abstract class Connection {
     protected static final int TAG_SUBSTRING_END = 256;
     protected static final int BOX_NUMBER_SUBSTRING_START = 256;
     protected static final int BOX_NUMBER_SUBSTRING_END = 258;
+    protected static final int MESSAGE_FETCH_INTERVAL = 200;
     protected ConnectionInfo ab;
     protected ConnectionInfo ba;
     protected final BulletinBoardInterface bulletinBoard;

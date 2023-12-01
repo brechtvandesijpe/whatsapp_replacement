@@ -14,13 +14,16 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MetaConnection extends Connection {
     private Chat chat;
     private final UserInterface ui;
     private final Client client;
     private final ConnectionHandler connectionHandler;
-    protected final PeriodicMessageFetcher fetcher;
+    private ConnectionInfo[] dataConnectionInfo;
 
     public MetaConnection(BulletinBoardInterface bulletinBoard, Chat chat, UserInterface ui, Client client,
                             ConnectionHandler connectionHandler) {
@@ -29,7 +32,6 @@ public class MetaConnection extends Connection {
         this.ui = ui;
         this.client = client;
         this.connectionHandler = connectionHandler;
-        this.fetcher = new PeriodicMessageFetcher(this);
     }
 
     private ConnectionInfo[] calculateBumpConnectionInfo(String bumpstring, String passphrase) {
@@ -58,13 +60,13 @@ public class MetaConnection extends Connection {
 
     public void bump(String bumpstring, String passphrase) {
         ConnectionInfo[] metaConnectionInfo = calculateBumpConnectionInfo(bumpstring, passphrase);
-        this.ab = metaConnectionInfo[0];
-        this.ba = metaConnectionInfo[1];
+        ab = metaConnectionInfo[0];
+        ba = metaConnectionInfo[1];
 
         String dataBumpstring = RandomStringGenerator.generateRandomString(10);
-        ConnectionInfo[] dataConnectionInfo = calculateBumpConnectionInfo(dataBumpstring, dataBumpstring);
+        dataConnectionInfo = calculateBumpConnectionInfo(dataBumpstring, dataBumpstring);
+//        connectionHandler.startDataConnection(dataConnectionInfo[0], dataConnectionInfo[1]);
 
-        connectionHandler.setConnectionInfo(dataConnectionInfo[0], dataConnectionInfo[1]);
         String name = connectionHandler.getName();
         sendMessage(new ChatMessage(name, "name," + bumpstring + "," + client.getUsername()));
         sendMessage(new ChatMessage(name, "databumpstring," + dataBumpstring));
@@ -131,11 +133,14 @@ public class MetaConnection extends Connection {
 
                 String[] parts = payload.split(",");
                 System.out.println("Metafetcher got Parts: " + Arrays.toString(parts));
-                if (parts[0].equals("name")) setName(parts[1], parts[2]);
+                if (parts[0].equals("name")) {
+                    setName(parts[1], parts[2]);
+                    connectionHandler.startDataConnection(dataConnectionInfo[0], dataConnectionInfo[1]);
+                }
                 if (parts[0].equals("databumpstring")) setDataBumpstring(parts[1]);
             } catch (InvalidKeyException | NoSuchPaddingException | NoSuchAlgorithmException |
-                     IllegalBlockSizeException | BadPaddingException e) {
-//                System.out.println(e.getMessage());
+                     IllegalBlockSizeException | BadPaddingException | NullPointerException e) {
+                System.out.println(e.getMessage());
             }
 
             try {
@@ -148,16 +153,32 @@ public class MetaConnection extends Connection {
 
     private void setDataBumpstring(String bumpstring) {
         ConnectionInfo[] dataConnectionInfo = calculateBumpBackConnectionInfo(bumpstring, bumpstring);
-        connectionHandler.setConnectionInfo(dataConnectionInfo[0], dataConnectionInfo[1]);
+        connectionHandler.startDataConnection(dataConnectionInfo[0], dataConnectionInfo[1]);
     }
 
     private void setName(String oldName, String name) {
+        connectionHandler.setName(name);
         int index = ui.addContact(name);
         client.changeChatName(index, oldName);
-        connectionHandler.setName(name);
     }
 
     public void startFetcher() {
+        Runnable task = this::fetchMessages;
+
+        Thread fetcher = new Thread(() -> {
+            while (true) {
+                try {
+                    System.out.println("run task" + Thread.currentThread().threadId());
+                    task.run();
+                    Thread.sleep(MESSAGE_FETCH_INTERVAL);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    // Handle interruption if needed
+                    break;
+                }
+            }
+        });
+
         fetcher.start();
     }
 }

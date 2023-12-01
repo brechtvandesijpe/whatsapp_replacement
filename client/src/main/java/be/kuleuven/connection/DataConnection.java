@@ -12,19 +12,21 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class DataConnection extends Connection {
     private Chat chat;
-    private final String name;
-    protected final PeriodicMessageFetcher fetcher;
+    private String name;
+    private Thread fetcher;
+
     public DataConnection(ConnectionInfo ab, ConnectionInfo ba, BulletinBoardInterface bulletinBoard, Chat chat, String name) {
         super(bulletinBoard);
         super.ab = ab;
         super.ba = ba;
         this.chat = chat;
         this.name = name;
-        this.fetcher = new PeriodicMessageFetcher(this);
-        startFetcher();
     }
 
     @Override
@@ -77,7 +79,31 @@ public class DataConnection extends Connection {
         return salt;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public void startFetcher() {
+        Runnable task = this::fetchMessages;
+
+        Thread fetcher = new Thread(() -> {
+            while (true) {
+                try {
+                    System.out.println("run task" + Thread.currentThread().threadId());
+                    task.run();
+                    Thread.sleep(MESSAGE_FETCH_INTERVAL);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    // Handle interruption if needed
+                    break;
+                }
+            }
+        });
+
         fetcher.start();
+    }
+
+    public void stopFetcher() {
+
     }
 }

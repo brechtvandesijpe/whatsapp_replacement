@@ -45,7 +45,14 @@ public class ConnectionHandler {
         this.name = name;
     }
 
-    public void setConnectionInfo(ConnectionInfo ab, ConnectionInfo ba) {
+    public void startDataConnection(ConnectionInfo ab, ConnectionInfo ba) {
+        try {
+            dataConnection.stopFetcher();
+        } catch(Exception e) {
+            System.out.println(e.getMessage());
+        }
+
         dataConnection = new DataConnection(ab, ba, bulletinBoard, chat, name);
+        dataConnection.startFetcher();
     }
 }
