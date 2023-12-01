@@ -129,8 +129,7 @@ public class MetaConnection extends Connection {
                 ba.setBoxNumber(boxNumber);
                 ba.setSecretKey(SecurityManager.getSymmetricKey(Base64.getEncoder().encodeToString(ba.getSecretKey().getEncoded()), MessageHandler.deriveSalt(tag)));
 
-                String[] parts = payload.split(",")
-;                // TODO: HANDLE COMMAND
+                String[] parts = payload.split(",");
                 System.out.println("Metafetcher got Parts: " + Arrays.toString(parts));
                 if (parts[0].equals("name")) setName(parts[1], parts[2]);
                 if (parts[0].equals("databumpstring")) setDataBumpstring(parts[1]);
