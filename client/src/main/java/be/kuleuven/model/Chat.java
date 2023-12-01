@@ -1,30 +1,30 @@
 package be.kuleuven.model;
 
 import java.util.ArrayList;
-import be.kuleuven.connection.Connection;
+import be.kuleuven.connection.ConnectionHandler;
 import be.kuleuven.UserInterface;
 
 public class Chat extends ArrayList<ChatMessage> {
-    private final ArrayList<Connection> connections;
+    private final ArrayList<ConnectionHandler> connectionHandlers;
     private final UserInterface ui;
     private String name;
 
     public Chat(UserInterface ui, String name) {
         super();
-        connections = new ArrayList<>();
+        connectionHandlers = new ArrayList<>();
         this.ui = ui;
         this.name = name;
     }
 
-    public void add(Connection connection) {
-        connections.add(connection);
+    public void add(ConnectionHandler connectionHandler) {
+        connectionHandlers.add(connectionHandler);
     }
 
     public void sendMessage(ChatMessage message) {
-        for (Connection connection : connections) {
-            System.out.println("Sending message to " + connection.getName());
+        for (ConnectionHandler connectionHandler : connectionHandlers) {
+            System.out.println("Sending message to " + connectionHandler.getName());
             try {
-                connection.sendMessage(false, message);
+                connectionHandler.sendMessage(message);
             } catch(Exception e) {
                 e.printStackTrace();
             }
@@ -53,10 +53,10 @@ public class Chat extends ArrayList<ChatMessage> {
     public String[] sendBump() {
         // Array of bumpstring the new client has to bump with, you first bump with the client you add and then send this
         // array as the second message so he can add every single one of them and bump with them
-        String[] result = new String[connections.size()];
+        String[] result = new String[connectionHandlers.size()];
 
-        for (Connection connection : connections) {
-            result[connections.indexOf(connection)] = connection.sendBump();
+        for (ConnectionHandler connectionHandler : connectionHandlers) {
+            result[connectionHandlers.indexOf(connectionHandler)] = connectionHandler.sendBump();
         }
 
         return result;

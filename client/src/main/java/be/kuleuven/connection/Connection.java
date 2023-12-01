@@ -1,9 +1,7 @@
 package be.kuleuven.connection;
 
-import be.kuleuven.UserInterface;
-import be.kuleuven.model.Chat;
-import be.kuleuven.model.ChatMessage;
 import be.kuleuven.interfaces.BulletinBoardInterface;
+import be.kuleuven.model.ChatMessage;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -13,34 +11,21 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
-import javax.crypto.SecretKey;
 
-public class Connection {
-    private static final int TAG_SUBSTRING_START = 0;
-    private static final int TAG_SUBSTRING_END = 256;
-    private static final int BOX_NUMBER_SUBSTRING_START = 256;
-    private static final int BOX_NUMBER_SUBSTRING_END = 258;
-    private final Chat chat;
-    private final BulletinBoardInterface bulletinBoard;
-    private String name;
-    private ConnectionInfo ab;
-    private ConnectionInfo ba;
-    private final PeriodicMessageFetcher fetcher;
-    private final UserInterface ui;
-    private final Client client;
-    private boolean stopName;
+public abstract class Connection {
+    protected static final int TAG_SUBSTRING_START = 0;
+    protected static final int TAG_SUBSTRING_END = 256;
+    protected static final int BOX_NUMBER_SUBSTRING_START = 256;
+    protected static final int BOX_NUMBER_SUBSTRING_END = 258;
+    protected ConnectionInfo ab;
+    protected ConnectionInfo ba;
+    protected final BulletinBoardInterface bulletinBoard;
 
-    public Connection(String name, Chat chat, BulletinBoardInterface bulletinBoard, UserInterface ui, Client client) {
-        this.name = name;
-        this.chat = chat;
+    public Connection(BulletinBoardInterface bulletinBoard) {
         this.bulletinBoard = bulletinBoard;
-        this.fetcher = new PeriodicMessageFetcher(this);
-        this.ui = ui;
-        this.client = client;
-        this.stopName = true;
     }
 
-    private static char getRandomChar() {
+    protected static char getRandomChar() {
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_+=<>?";
 
         // Kies willekeurig een teken uit de lijst
@@ -49,23 +34,12 @@ public class Connection {
         return characters.charAt(rnd);
     }
 
-    private static String generateRandomTag() {
+    protected static String generateRandomTag() {
         StringBuilder tagBuilder = new StringBuilder();
         for (int i = 0; i < 256; i++) {
             tagBuilder.append(getRandomChar());
         }
         return tagBuilder.toString();
-    }
-
-    private void setName(String oldName, String name) {
-        int index = ui.addContact(name);
-        client.changeChatName(index, oldName);
-        this.name = name;
-        fetcher.start();
-    }
-
-    public String getName() {
-        return name;
     }
 
     public String transformMessage(String message) {
@@ -87,12 +61,10 @@ public class Connection {
         return randomTag + String.format("%02d", newBoxNumber) + message;
     }
 
-    public void sendMessage(boolean isInitial, ChatMessage message) {
-        if(!isInitial) chat.add(message);
-
+    public void sendMessage(ChatMessage chatMessage) {
         int boxNumber = ab.getBoxNumber();
         byte[] tag = Arrays.copyOf(ab.getTag(), ab.getTag().length);
-        String transformedMessage = transformMessage(message.getMessage());
+        String transformedMessage = transformMessage(chatMessage.getMessage());
         System.out.println("TransformedMessage: " + transformedMessage);
         System.out.println("Sender: " + Arrays.toString(tag) + ", " + boxNumber);
         byte[] hashedMessage;
@@ -120,112 +92,5 @@ public class Connection {
         }
     }
 
-    public static byte[] deriveSalt(byte[] tag) {
-        byte[] salt = new byte[256];
-        System.arraycopy(tag, 1, salt, 0, 64);
-        return salt;
-    }
-
-    public void fetchMessages() {
-        byte[] message = null;
-
-        try {
-            message = bulletinBoard.getMessage(ba.getBoxNumber(), ba.getTag());
-        } catch (NoSuchAlgorithmException | RemoteException e) {
-//            System.out.println(e.getMessage());
-        }
-
-//        System.out.println("fetch " + stopName + " (" + message + ")");
-
-        while (message != null) {
-            String newMessage = null;
-//            System.out.println(message);
-
-            try {
-                newMessage = new String(SecurityManager.decryptMessage(message, ba.getSecretKey()));
-
-                byte[] tag = newMessage.substring(TAG_SUBSTRING_START, TAG_SUBSTRING_END).getBytes();
-                int boxNumber = Integer.parseInt(newMessage.substring(BOX_NUMBER_SUBSTRING_START, BOX_NUMBER_SUBSTRING_END));
-                String payload = newMessage.substring(BOX_NUMBER_SUBSTRING_END);
-
-                ba.setTag(tag);
-                ba.setBoxNumber(boxNumber);
-                System.out.println("Receiver: " + Arrays.toString(tag) + ", " + boxNumber);
-                ba.setSecretKey(SecurityManager.getSymmetricKey(Base64.getEncoder().encodeToString(ba.getSecretKey().getEncoded()), deriveSalt(tag)));
-
-                System.out.println("found " + payload + " " + stopName);
-                if (stopName) {
-                    setName(name, payload);
-                    stopName = false;
-                } else {
-                    chat.add(new ChatMessage(name, payload));
-                }
-            } catch (InvalidKeyException | NoSuchPaddingException | NoSuchAlgorithmException |
-                     IllegalBlockSizeException | BadPaddingException e) {
-//                System.out.println(e.getMessage());
-            }
-
-            try {
-                message  = bulletinBoard.getMessage(ba.getBoxNumber(), ba.getTag());
-            } catch (NoSuchAlgorithmException | RemoteException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    public void bump(String bumpstring, String passphrase) {
-        int boxNumber_AB;
-        int boxNumber_BA;
-
-        try {
-            boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(bumpstring)) % bulletinBoard.getAmountOfMailboxes();
-            boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(bumpstring).reverse().toString())) % bulletinBoard.getAmountOfMailboxes();
-            System.out.println("Boxnumber AB: " + boxNumber_AB + ", BoxNumber BA: " + boxNumber_BA);
-        } catch(RemoteException ex) {
-            throw new RuntimeException();
-        }
-
-        byte[] tag_AB = RandomStringGenerator.deriveBytesFromPassphrase(passphrase);
-        byte[] tag_BA = RandomStringGenerator.deriveBytesFromPassphrase(new StringBuilder(passphrase).reverse().toString());
-        System.out.println("Tag AB: " + Arrays.toString(tag_AB) + ", Tag BA: " + Arrays.toString(tag_BA));
-
-        SecretKey secretKey_AB = SecurityManager.getSymmetricKey(passphrase, tag_AB);
-        SecretKey secretKey_BA = SecurityManager.getSymmetricKey(passphrase, tag_BA);
-
-        this.ab = new ConnectionInfo(boxNumber_AB, tag_AB, secretKey_AB);
-        this.ba = new ConnectionInfo(boxNumber_BA, tag_BA, secretKey_BA);
-    }
-
-    public void bumpBack(String bumpstring, String passphrase) {
-        int boxNumber_AB;
-        int boxNumber_BA;
-
-        try {
-            boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(bumpstring)) % bulletinBoard.getAmountOfMailboxes();
-            boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(bumpstring).reverse().toString())) % bulletinBoard.getAmountOfMailboxes();
-            System.out.println("Boxnumber AB: " + boxNumber_AB + ", BoxNumber BA: " + boxNumber_BA);
-        } catch(RemoteException ex) {
-            throw new RuntimeException();
-        }
-
-        byte[] tag_BA = RandomStringGenerator.deriveBytesFromPassphrase(passphrase);
-        byte[] tag_AB = RandomStringGenerator.deriveBytesFromPassphrase(new StringBuilder(passphrase).reverse().toString());
-        System.out.println("Tag AB: " + Arrays.toString(tag_AB) + ", Tag BA: " + Arrays.toString(tag_BA));
-
-        SecretKey secretKey_AB = SecurityManager.getSymmetricKey(passphrase, tag_AB);
-        SecretKey secretKey_BA = SecurityManager.getSymmetricKey(passphrase, tag_BA);
-
-        this.ab = new ConnectionInfo(boxNumber_AB, tag_AB, secretKey_AB);
-        this.ba = new ConnectionInfo(boxNumber_BA, tag_BA, secretKey_BA);
-    }
-
-    public void startFetcher() {
-        fetcher.start();
-    }
-
-    public String sendBump() {
-        String bumpstring = RandomStringGenerator.generateRandomString(10);
-        // TODO: send the bumpstring in the group, let them bump with it and make sure they add it to the same chat as connection
-        return bumpstring;
-    }
+    public abstract void fetchMessages();
 }

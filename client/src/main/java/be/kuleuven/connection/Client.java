@@ -16,14 +16,12 @@ public class Client extends UnicastRemoteObject {
     private final UserInterface ui;
     private BulletinBoardInterface bulletinBoard;
     private final Map<Integer, Chat> chats;
-    private final Map<Integer, String> bumpstrings;
 
     public Client(String username, UserInterface ui) throws RemoteException {
         super();
         this.username = username;
         this.ui = ui;
         this.chats = new HashMap<>();
-        this.bumpstrings = new HashMap<>();
     }
 
     public void join() {
@@ -38,33 +36,17 @@ public class Client extends UnicastRemoteObject {
 
     public void bump(String bumpstring, String passphrase) {
         Chat chat = new Chat(ui, bumpstring);
-        Connection connection = new Connection(bumpstring, chat, bulletinBoard, ui, this);
-        connection.bump(bumpstring, passphrase);
-        chat.add(connection);
-
-        try {
-            connection.sendMessage(true, new ChatMessage(username, username));
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-
-        connection.startFetcher();
+        ConnectionHandler connectionHandler = new ConnectionHandler(bumpstring, chat, bulletinBoard, ui, this);
+        connectionHandler.bump(bumpstring, passphrase);
+        chat.add(connectionHandler);
         chats.put(bumpstring.hashCode(), chat);
     }
 
     public void bumpBack(String bumpstring, String passphrase) {
         Chat chat = new Chat(ui, bumpstring);
-        Connection connection = new Connection(bumpstring, chat, bulletinBoard, ui, this);
-        connection.bumpBack(bumpstring, passphrase);
-        chat.add(connection);
-
-        try {
-            connection.sendMessage(true, new ChatMessage(username, username));
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-
-        connection.startFetcher();
+        ConnectionHandler connectionHandler = new ConnectionHandler(bumpstring, chat, bulletinBoard, ui, this);
+        connectionHandler.bumpBack(bumpstring, passphrase);
+        chat.add(connectionHandler);
         chats.put(bumpstring.hashCode(), chat);
     }
 
@@ -90,6 +72,7 @@ public class Client extends UnicastRemoteObject {
         System.out.println("get " + selectedContact);
         Chat chat = chats.get(selectedContact);
         System.out.println("Sending " + text + " to " + chat.getName());
+        System.out.println("my username is " + username);
         chat.sendMessage(new ChatMessage(username, text));
     }
 
@@ -105,17 +88,21 @@ public class Client extends UnicastRemoteObject {
     }
 
     public void addUserToChat(int selectedChat) {
-        String chatName = bumpstrings.get(selectedChat);
-        Chat chat = chats.get(chatName);
-        Connection connection = new Connection(chatName, chat, bulletinBoard, ui, this);
-        connection.startFetcher();
-        chat.add(connection);
-
-        // Let everyone in the group bump with you and bump with them too
-        chat.sendBump();
+//        String chatName = bumpstrings.get(selectedChat);
+//        Chat chat = chats.get(chatName);
+//        ConnectionHandler connectionHandler = new ConnectionHandler(chatName, chat, bulletinBoard, ui, this);
+//        connectionHandler.startFetcher();
+//        chat.add(connectionHandler);
+//
+//        // Let everyone in the group bump with you and bump with them too
+//        chat.sendBump();
     }
 
     public boolean isChat(int selectedContact, Chat chat) {
         return chats.get(selectedContact) == chat;
+    }
+
+    public String getUsername() {
+        return username;
     }
 }
