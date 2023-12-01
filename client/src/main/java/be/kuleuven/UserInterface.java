@@ -91,7 +91,6 @@ public class UserInterface extends JFrame {
     }
 
     public static void main(String[] args) {
-        System.out.println("Hello world");
         new UserInterface("Whatsapp replacement");
     }
 
@@ -199,8 +198,6 @@ public class UserInterface extends JFrame {
     }
 
     public int addContact(String name) {
-        System.out.println("add contact " + name);
-
         contactListModel.addElement(name);
         userList.setSelectedValue(name, false);
         return contactListModel.getSize() - 1;

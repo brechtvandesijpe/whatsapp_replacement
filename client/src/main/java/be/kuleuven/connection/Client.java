@@ -69,16 +69,14 @@ public class Client extends UnicastRemoteObject {
     }
 
     public void sendMessage(String text, int selectedContact) {
-        System.out.println("get " + selectedContact);
         Chat chat = chats.get(selectedContact);
-        System.out.println("Sending " + text + " to " + chat.getName());
-        System.out.println("my username is " + username);
         chat.sendMessage(new ChatMessage(username, text));
     }
 
     public void changeChatName(int chatIndex, String chatName) {
         Chat chat = chats.get(chatName.hashCode());
         chats.remove(chatName.hashCode());
+        chat.setName(chatName);
         System.out.println(chatIndex + " -> " + chatName);
         chats.put(chatIndex, chat);
     }

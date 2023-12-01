@@ -55,8 +55,6 @@ public class DataConnection extends Connection {
 
                 ba.setTag(tag);
                 ba.setBoxNumber(boxNumber);
-//                System.out.println("Receiver: " + Arrays.toString(tag) + ", " + boxNumber);
-                System.out.println("Datafetcher found payload: " + payload);
                 ba.setSecretKey(SecurityManager.getSymmetricKey(Base64.getEncoder().encodeToString(ba.getSecretKey().getEncoded()), deriveSalt(tag)));
 
                 chat.add(new ChatMessage(name, payload));
@@ -80,7 +78,6 @@ public class DataConnection extends Connection {
     }
 
     public void startFetcher() {
-        System.out.println("Starting Datafetcher");
         fetcher.start();
     }
 }

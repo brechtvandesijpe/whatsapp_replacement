@@ -65,8 +65,6 @@ public abstract class Connection {
         int boxNumber = ab.getBoxNumber();
         byte[] tag = Arrays.copyOf(ab.getTag(), ab.getTag().length);
         String transformedMessage = transformMessage(chatMessage.getMessage());
-        System.out.println("TransformedMessage: " + transformedMessage);
-        System.out.println("Sender: " + Arrays.toString(tag) + ", " + boxNumber);
         byte[] hashedMessage;
 
         try {

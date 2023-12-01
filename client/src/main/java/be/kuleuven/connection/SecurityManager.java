@@ -48,9 +48,4 @@ public class SecurityManager {
         cipher.init(Cipher.ENCRYPT_MODE, symmetricKey);
         return cipher.doFinal(plaintTextBytes);
     }
-
-    @Override
-    public String toString() {
-        return "SecurityManager{}";
-    }
 }

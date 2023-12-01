@@ -22,7 +22,6 @@ public class Chat extends ArrayList<ChatMessage> {
 
     public void sendMessage(ChatMessage message) {
         for (ConnectionHandler connectionHandler : connectionHandlers) {
-            System.out.println("Sending message to " + connectionHandler.getName());
             try {
                 connectionHandler.sendMessage(message);
             } catch(Exception e) {
@@ -60,5 +59,9 @@ public class Chat extends ArrayList<ChatMessage> {
         }
 
         return result;
+    }
+
+    public void setName(String chatName) {
+        this.name = chatName;
     }
 }

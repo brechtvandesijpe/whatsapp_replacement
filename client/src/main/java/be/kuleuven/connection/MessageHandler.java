@@ -26,7 +26,6 @@ public class MessageHandler {
     public static void deriveAndUpdateSecretKey(ConnectionInfo ab) {
         String encodedSecretKey = Base64.getEncoder().encodeToString(ab.getSecretKey().getEncoded());
         ab.setSecretKey(SecurityManager.getSymmetricKey(encodedSecretKey, deriveSalt(ab.getTag())));
-        System.out.println("Nieuwe SecretKey: " + encodedSecretKey);
     }
 
     // Derive a salt from a tag, could be a random salt aswell but then we have to save it somewhere

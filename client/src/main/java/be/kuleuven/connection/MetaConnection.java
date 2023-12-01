@@ -39,14 +39,12 @@ public class MetaConnection extends Connection {
         try {
             boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(bumpstring)) % bulletinBoard.getAmountOfMailboxes();
             boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(bumpstring).reverse().toString())) % bulletinBoard.getAmountOfMailboxes();
-            System.out.println("Boxnumber AB: " + boxNumber_AB + ", BoxNumber BA: " + boxNumber_BA);
         } catch(RemoteException ex) {
             throw new RuntimeException();
         }
 
         byte[] tag_AB = RandomStringGenerator.deriveBytesFromPassphrase(passphrase);
         byte[] tag_BA = RandomStringGenerator.deriveBytesFromPassphrase(new StringBuilder(passphrase).reverse().toString());
-        System.out.println("Tag AB: " + Arrays.toString(tag_AB) + ", Tag BA: " + Arrays.toString(tag_BA));
 
         SecretKey secretKey_AB = SecurityManager.getSymmetricKey(passphrase, tag_AB);
         SecretKey secretKey_BA = SecurityManager.getSymmetricKey(passphrase, tag_BA);
@@ -80,14 +78,12 @@ public class MetaConnection extends Connection {
         try {
             boxNumber_BA = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(bumpstring)) % bulletinBoard.getAmountOfMailboxes();
             boxNumber_AB = Math.abs(RandomStringGenerator.deriveIntFromPasshrase(new StringBuilder(bumpstring).reverse().toString())) % bulletinBoard.getAmountOfMailboxes();
-            System.out.println("Boxnumber AB: " + boxNumber_AB + ", BoxNumber BA: " + boxNumber_BA);
         } catch(RemoteException ex) {
             throw new RuntimeException();
         }
 
         byte[] tag_BA = RandomStringGenerator.deriveBytesFromPassphrase(passphrase);
         byte[] tag_AB = RandomStringGenerator.deriveBytesFromPassphrase(new StringBuilder(passphrase).reverse().toString());
-        System.out.println("Tag AB: " + Arrays.toString(tag_AB) + ", Tag BA: " + Arrays.toString(tag_BA));
 
         SecretKey secretKey_AB = SecurityManager.getSymmetricKey(passphrase, tag_AB);
         SecretKey secretKey_BA = SecurityManager.getSymmetricKey(passphrase, tag_BA);
@@ -133,10 +129,9 @@ public class MetaConnection extends Connection {
                 ba.setBoxNumber(boxNumber);
                 ba.setSecretKey(SecurityManager.getSymmetricKey(Base64.getEncoder().encodeToString(ba.getSecretKey().getEncoded()), MessageHandler.deriveSalt(tag)));
 
-                System.out.println("Metafetcher found payload: " + payload);
                 String[] parts = payload.split(",")
 ;                // TODO: HANDLE COMMAND
-                System.out.println("Parts: " + Arrays.toString(parts));
+                System.out.println("Metafetcher got Parts: " + Arrays.toString(parts));
                 if (parts[0].equals("name")) setName(parts[1], parts[2]);
                 if (parts[0].equals("databumpstring")) setDataBumpstring(parts[1]);
             } catch (InvalidKeyException | NoSuchPaddingException | NoSuchAlgorithmException |
@@ -164,7 +159,6 @@ public class MetaConnection extends Connection {
     }
 
     public void startFetcher() {
-        System.out.println("Starting Metafetcher");
         fetcher.start();
     }
 }
