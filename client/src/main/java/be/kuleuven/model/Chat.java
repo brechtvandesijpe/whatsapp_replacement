@@ -50,10 +50,6 @@ public class Chat extends ArrayList<ChatMessage> {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String[] sendBump() {
         // Array of bumpstring the new client has to bump with, you first bump with the client you add and then send this
         // array as the second message so he can add every single one of them and bump with them

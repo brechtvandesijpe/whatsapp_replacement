@@ -61,7 +61,6 @@ public class Connection {
         int index = ui.addContact(name);
         client.changeChatName(index, oldName);
         this.name = name;
-        chat.setName(name);
         fetcher.start();
     }
 
