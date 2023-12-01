@@ -168,7 +168,6 @@ public class MetaConnection extends Connection {
         Thread fetcher = new Thread(() -> {
             while (true) {
                 try {
-                    System.out.println("run task" + Thread.currentThread().threadId());
                     task.run();
                     Thread.sleep(MESSAGE_FETCH_INTERVAL);
                 } catch (InterruptedException e) {
