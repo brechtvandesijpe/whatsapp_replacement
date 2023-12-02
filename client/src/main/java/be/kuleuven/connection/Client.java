@@ -65,6 +65,7 @@ public class Client extends UnicastRemoteObject {
         } catch(RemoteException e) {
             ui.showErrorDialog("Action not executed, server down!");
             ui.setButtonsEnabled(true, false, false, false, false, false);
+            ui.setRecoveryMode();
         }
     }
 
@@ -79,6 +80,7 @@ public class Client extends UnicastRemoteObject {
         } catch(RemoteException e) {
             ui.showErrorDialog("Action not executed, server down!");
             ui.setButtonsEnabled(true, false, false, false, false, false);
+            ui.setRecoveryMode();
         }
     }
 
@@ -90,6 +92,7 @@ public class Client extends UnicastRemoteObject {
         } catch(RemoteException ex) {
             ui.showErrorDialog("Action not executed, server down!");
             ui.setButtonsEnabled(true, false, false, false, false, false);
+            ui.setRecoveryMode();
         }
     }
 
@@ -111,6 +114,7 @@ public class Client extends UnicastRemoteObject {
         } catch(RemoteException e) {
             ui.showErrorDialog("Action not executed, server down!");
             ui.setButtonsEnabled(true, false, false, false, false, false);
+            ui.setRecoveryMode();
         }
     }
 
@@ -163,6 +167,8 @@ public class Client extends UnicastRemoteObject {
             JSONObject jsonObject = (JSONObject) o;
             chats.put(jsonObject.getInt("key"), new Chat(jsonObject.getJSONObject("chat"), ui));
         }
+
+        ui.setSelectedContact(0);
     }
 
     public void saveState() {

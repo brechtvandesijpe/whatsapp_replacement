@@ -32,9 +32,9 @@ public class UserInterface extends JFrame {
     private JPanel panel2;
     private JScrollPane jscrollpane;
     private JButton restoreButton;
-    private JButton addUserToChatButton;
     private DefaultListModel<String> contactListModel;
     private final Client client;
+    private boolean recoveryMode = false;
 
     public UserInterface(String title) {
         super(title);
@@ -76,10 +76,6 @@ public class UserInterface extends JFrame {
 
         bumpBackButton.addActionListener(e -> handleBumpBackButtonClick());
 
-        restoreButton.addActionListener(e -> {
-            handleRestoreButtonClick();
-        });
-
         leaveButton.addActionListener(e -> {
             handleLeaveButtonClick();
         });
@@ -88,10 +84,6 @@ public class UserInterface extends JFrame {
         this.getRootPane().setDefaultButton(joinButton);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
-    }
-
-    private void handleRestoreButtonClick() {
-        client.restore();
     }
 
     public static void main(String[] args) {
@@ -108,13 +100,16 @@ public class UserInterface extends JFrame {
         bumpBackButton.setVisible(true);
         leaveButton.setVisible(true);
         sendMessageButton.setVisible(true);
-        restoreButton.setVisible(true);
         statusLabel.setVisible(true);
         panel2.setVisible(true);
     }
 
     public void handleJoinButtonClick() throws RemoteException {
         client.join();
+        if (recoveryMode) {
+            client.restore();
+            recoveryMode = false;
+        }
     }
 
     public void handleBumpButtonClick() {
@@ -189,7 +184,6 @@ public class UserInterface extends JFrame {
         this.bumpButton.setEnabled(bumpButton);
         this.bumpBackButton.setEnabled(bumpBackButton);
         this.sendMessageButton.setEnabled(sendMessageButton);
-        this.restoreButton.setEnabled(restoreButton);
     }
 
     public void initiate(String username) {
@@ -234,5 +228,15 @@ public class UserInterface extends JFrame {
             contactListModel.addElement((String) o);
         }
         userList.setModel(contactListModel);
+    }
+
+    public void setRecoveryMode() {
+        recoveryMode = true;
+    }
+
+    public void setSelectedContact(int i) {
+        try {
+            userList.setSelectedValue(i, false);
+        } catch(Exception e) {}
     }
 }
