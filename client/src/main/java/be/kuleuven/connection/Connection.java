@@ -43,16 +43,12 @@ public abstract class Connection {
         return tagBuilder.toString();
     }
 
-    public String transformMessage(String message) {
+    public String transformMessage(String message) throws RemoteException {
         // Generate a random tag
         String randomTag = generateRandomTag();
 
         int newBoxNumber = 0;
-        try {
-            newBoxNumber = (int) (Math.random() * bulletinBoard.getAmountOfMailboxes());
-        } catch (RemoteException e) {
-            throw new RuntimeException(e);
-        }
+        newBoxNumber = (int) (Math.random() * bulletinBoard.getAmountOfMailboxes());
 
         // Update the BulletinEntry for the given friend
         ab.setTag(randomTag.getBytes());
@@ -62,7 +58,7 @@ public abstract class Connection {
         return randomTag + String.format("%02d", newBoxNumber) + message;
     }
 
-    public void sendMessage(ChatMessage chatMessage) {
+    public void sendMessage(ChatMessage chatMessage) throws RemoteException {
         int boxNumber = ab.getBoxNumber();
         byte[] tag = Arrays.copyOf(ab.getTag(), ab.getTag().length);
         String transformedMessage = transformMessage(chatMessage.getMessage());
@@ -83,12 +79,7 @@ public abstract class Connection {
         }
 
         MessageHandler.deriveAndUpdateSecretKey(ab);
-
-        try {
-            bulletinBoard.postMessage(boxNumber, hashedMessage, hashedTag);
-        } catch (RemoteException e) {
-            throw new RuntimeException(e);
-        }
+        bulletinBoard.postMessage(boxNumber, hashedMessage, hashedTag);
     }
 
     public abstract void fetchMessages();

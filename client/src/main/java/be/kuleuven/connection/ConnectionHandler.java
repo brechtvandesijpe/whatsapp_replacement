@@ -6,6 +6,8 @@ import be.kuleuven.model.ChatMessage;
 import be.kuleuven.interfaces.BulletinBoardInterface;
 import org.json.JSONObject;
 
+import java.rmi.RemoteException;
+
 public class ConnectionHandler {
     private static int count = 0;
     private Chat chat;
@@ -59,15 +61,15 @@ public class ConnectionHandler {
         return name;
     }
 
-    public void sendMessage(ChatMessage message) {
+    public void sendMessage(ChatMessage message) throws RemoteException {
         dataConnection.sendMessage(message);
     }
 
-    public void bump(String bumpstring, String passphrase) {
+    public void bump(String bumpstring, String passphrase) throws RemoteException {
         metaConnection.bump(bumpstring, passphrase);
     }
 
-    public void bumpBack(String bumpstring, String passphrase) {
+    public void bumpBack(String bumpstring, String passphrase) throws RemoteException {
         metaConnection.bumpBack(bumpstring, passphrase);
     }
 

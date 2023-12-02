@@ -23,6 +23,7 @@ public class Client extends UnicastRemoteObject {
     private static BulletinBoardInterface bulletinBoard;
     private static Client instance;
     private Map<Integer, Chat> chats;
+    private Thread joinThread;
 
     private Client(String username, UserInterface ui) throws RemoteException {
         super();
@@ -50,26 +51,35 @@ public class Client extends UnicastRemoteObject {
             ui.initiate(username);
         } catch(RemoteException e) {
             ui.showErrorDialog(e.getMessage());
-            e.printStackTrace();
         }
     }
 
     public void bump(String bumpstring, String passphrase) {
-        Chat chat = new Chat(ui, bumpstring);
-        ConnectionHandler connectionHandler = new ConnectionHandler(bumpstring, chat, bulletinBoard, ui, this);
-        connectionHandler.bump(bumpstring, passphrase);
-        chat.add(connectionHandler);
-        chats.put(bumpstring.hashCode(), chat);
-        saveState();
+        try {
+            Chat chat = new Chat(ui, bumpstring);
+            ConnectionHandler connectionHandler = new ConnectionHandler(bumpstring, chat, bulletinBoard, ui, this);
+            connectionHandler.bump(bumpstring, passphrase);
+            chat.add(connectionHandler);
+            chats.put(bumpstring.hashCode(), chat);
+            saveState();
+        } catch(RemoteException e) {
+            ui.showErrorDialog("Action not executed, server down!");
+            ui.setButtonsEnabled(true, false, false, false, false, false);
+        }
     }
 
     public void bumpBack(String bumpstring, String passphrase) {
-        Chat chat = new Chat(ui, bumpstring);
-        ConnectionHandler connectionHandler = new ConnectionHandler(bumpstring, chat, bulletinBoard, ui, this);
-        connectionHandler.bumpBack(bumpstring, passphrase);
-        chat.add(connectionHandler);
-        chats.put(bumpstring.hashCode(), chat);
-        saveState();
+        try {
+            Chat chat = new Chat(ui, bumpstring);
+            ConnectionHandler connectionHandler = new ConnectionHandler(bumpstring, chat, bulletinBoard, ui, this);
+            connectionHandler.bumpBack(bumpstring, passphrase);
+            chat.add(connectionHandler);
+            chats.put(bumpstring.hashCode(), chat);
+            saveState();
+        } catch(RemoteException e) {
+            ui.showErrorDialog("Action not executed, server down!");
+            ui.setButtonsEnabled(true, false, false, false, false, false);
+        }
     }
 
     public void leave() {
@@ -78,7 +88,8 @@ public class Client extends UnicastRemoteObject {
             ui.removeSelectedContact();
             bulletinBoard.leave(username);
         } catch(RemoteException ex) {
-            throw new RuntimeException();
+            ui.showErrorDialog("Action not executed, server down!");
+            ui.setButtonsEnabled(true, false, false, false, false, false);
         }
     }
 
@@ -93,10 +104,14 @@ public class Client extends UnicastRemoteObject {
     }
 
     public void sendMessage(String text, int selectedContact) {
-        System.out.println("got chat from " + selectedContact);
-        Chat chat = chats.get(selectedContact);
-        chat.sendMessage(new ChatMessage(username, text));
-        saveState();
+        try {
+            Chat chat = chats.get(selectedContact);
+            chat.sendMessage(new ChatMessage(username, text));
+            saveState();
+        } catch(RemoteException e) {
+            ui.showErrorDialog("Action not executed, server down!");
+            ui.setButtonsEnabled(true, false, false, false, false, false);
+        }
     }
 
     public void changeChatName(int chatIndex, String chatName) {
@@ -124,7 +139,7 @@ public class Client extends UnicastRemoteObject {
         output.put("username", username);
 
         JSONArray chats = new JSONArray();
-        System.out.println(this.chats);
+//        System.out.println(this.chats);
         for (Integer key : this.chats.keySet()) {
             JSONObject object = new JSONObject();
             object.put("key", key);
@@ -155,7 +170,7 @@ public class Client extends UnicastRemoteObject {
         data.put("contacts", ui.getJSONContacts());
         try (FileWriter fileWriter = new FileWriter("client_" + username + ".json")) {
             fileWriter.write(data.toString());
-            System.out.println("Current state written to " + "client_" + username + ".json");
+//            System.out.println("Current state written to " + "client_" + username + ".json");
         } catch (IOException e) {
             e.printStackTrace();
         }

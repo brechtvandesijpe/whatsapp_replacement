@@ -43,9 +43,9 @@ public class DataConnection extends Connection {
     }
 
     @Override
-    public void sendMessage(ChatMessage chatMessage) {
-        chat.add(chatMessage);
+    public void sendMessage(ChatMessage chatMessage) throws RemoteException {
         super.sendMessage(chatMessage);
+        chat.add(chatMessage);
     }
 
     @Override

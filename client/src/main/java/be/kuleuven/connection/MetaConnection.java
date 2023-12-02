@@ -79,14 +79,13 @@ public class MetaConnection extends Connection {
         return output;
     }
 
-    public void bump(String bumpstring, String passphrase) {
+    public void bump(String bumpstring, String passphrase) throws RemoteException {
         ConnectionInfo[] metaConnectionInfo = calculateBumpConnectionInfo(bumpstring, passphrase);
         ab = metaConnectionInfo[0];
         ba = metaConnectionInfo[1];
 
         String dataBumpstring = RandomStringGenerator.generateRandomString(10);
         dataConnectionInfo = calculateBumpConnectionInfo(dataBumpstring, dataBumpstring);
-//        connectionHandler.startDataConnection(dataConnectionInfo[0], dataConnectionInfo[1]);
 
         String name = connectionHandler.getName();
         sendMessage(new ChatMessage(name, "name," + bumpstring + "," + client.getUsername()));
@@ -119,7 +118,7 @@ public class MetaConnection extends Connection {
         return output;
     }
 
-    public void bumpBack(String bumpstring, String passphrase) {
+    public void bumpBack(String bumpstring, String passphrase) throws RemoteException {
         ConnectionInfo[] metaConnectionInfo = calculateBumpBackConnectionInfo(bumpstring, passphrase);
         this.ab = metaConnectionInfo[0];
         this.ba = metaConnectionInfo[1];

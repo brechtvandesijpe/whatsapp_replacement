@@ -1,5 +1,7 @@
 package be.kuleuven.model;
 
+import java.rmi.ConnectException;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import be.kuleuven.connection.ConnectionHandler;
 import be.kuleuven.UserInterface;
@@ -83,13 +85,9 @@ public class Chat {
         }
     }
 
-    public void sendMessage(ChatMessage message) {
+    public void sendMessage(ChatMessage message) throws RemoteException {
         for (ConnectionHandler connectionHandler : connectionHandlers) {
-            try {
-                connectionHandler.sendMessage(message);
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
+            connectionHandler.sendMessage(message);
         }
     }
 
