@@ -3,6 +3,7 @@ package be.kuleuven;
 import javax.crypto.*;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.rmi.*;
 import java.security.InvalidKeyException;
@@ -12,6 +13,8 @@ import java.security.spec.InvalidKeySpecException;
 import be.kuleuven.connection.RandomStringGenerator;
 import be.kuleuven.connection.Client;
 import be.kuleuven.model.Chat;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 // Class representing the user interface for the chat application
 public class UserInterface extends JFrame {
@@ -30,7 +33,7 @@ public class UserInterface extends JFrame {
     private JScrollPane jscrollpane;
     private JButton restoreButton;
     private JButton addUserToChatButton;
-    private final DefaultListModel<String> contactListModel;
+    private DefaultListModel<String> contactListModel;
     private final Client client;
 
     public UserInterface(String title) {
@@ -38,7 +41,7 @@ public class UserInterface extends JFrame {
 
         String username = JOptionPane.showInputDialog("Please fill in your usename: ");
         try {
-            client = new Client(username, this);
+            client = Client.createInstance(username, this);
         } catch(RemoteException ex) {
             throw new RuntimeException("RemoteException when creating new client");
         }
@@ -46,6 +49,7 @@ public class UserInterface extends JFrame {
         contactListModel = new DefaultListModel<>();
         userList = new JList<>(contactListModel);
         userList.addListSelectionListener(this::handleListSelectionChange);
+        username_header.setText("Welcome " + username + "!");
         jscrollpane.setViewportView(userList);
         setSize(1280,720);
         setContentPane(panel);
@@ -73,21 +77,21 @@ public class UserInterface extends JFrame {
         bumpBackButton.addActionListener(e -> handleBumpBackButtonClick());
 
         restoreButton.addActionListener(e -> {
-
+            handleRestoreButtonClick();
         });
 
         leaveButton.addActionListener(e -> {
             handleLeaveButtonClick();
         });
 
-        addUserToChatButton.addActionListener(e -> {
-            handleAddUserToChatButtonClick();
-        });
-
         messageTextField.requestFocus();
         this.getRootPane().setDefaultButton(joinButton);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
+    }
+
+    private void handleRestoreButtonClick() {
+        client.restore();
     }
 
     public static void main(String[] args) {
@@ -171,10 +175,6 @@ public class UserInterface extends JFrame {
         chatArea.append(client.getChat(getSelectedContact()).toString());
     }
 
-    private void handleAddUserToChatButtonClick() {
-        client.addUserToChat(getSelectedContact());
-    }
-
     public void showErrorDialog(String message) {
         JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
@@ -204,6 +204,7 @@ public class UserInterface extends JFrame {
     }
 
     public int getSelectedContact(){
+        System.out.println("returned selected index = " + userList.getSelectedIndex());
         return userList.getSelectedIndex();
     }
 
@@ -211,5 +212,27 @@ public class UserInterface extends JFrame {
         if (client.isChat(getSelectedContact(), chat)) {
             chatArea.setText(chat.toString());
         }
+    }
+
+    public void removeSelectedContact() {
+        userList.remove(getSelectedContact());
+    }
+
+    public JSONArray getJSONContacts() {
+        JSONArray output = new JSONArray();
+
+        for (int i = 0; i < contactListModel.getSize(); i++) {
+            output.put(contactListModel.get(i));
+        }
+
+        return output;
+    }
+
+    public void setContactListModel(JSONArray data) {
+        contactListModel = new DefaultListModel<>();
+        for(Object o : data) {
+            contactListModel.addElement((String) o);
+        }
+        userList.setModel(contactListModel);
     }
 }

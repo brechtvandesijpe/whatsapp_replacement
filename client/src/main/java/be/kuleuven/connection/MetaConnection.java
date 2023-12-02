@@ -4,6 +4,7 @@ import be.kuleuven.UserInterface;
 import be.kuleuven.interfaces.BulletinBoardInterface;
 import be.kuleuven.model.Chat;
 import be.kuleuven.model.ChatMessage;
+import org.json.JSONObject;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -19,19 +20,39 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class MetaConnection extends Connection {
-    private Chat chat;
     private final UserInterface ui;
     private final Client client;
     private final ConnectionHandler connectionHandler;
     private ConnectionInfo[] dataConnectionInfo;
+    private boolean confirmed;
 
-    public MetaConnection(BulletinBoardInterface bulletinBoard, Chat chat, UserInterface ui, Client client,
+    public MetaConnection(BulletinBoardInterface bulletinBoard, UserInterface ui, Client client,
                             ConnectionHandler connectionHandler) {
         super(bulletinBoard);
-        this.chat = chat;
         this.ui = ui;
         this.client = client;
         this.connectionHandler = connectionHandler;
+        this.confirmed = false;
+    }
+
+    public JSONObject toJSONObject() {
+        JSONObject output = new JSONObject();
+        super.toJSONObject(output);
+        output.put("confirmed", confirmed);
+        return output;
+    }
+
+    public MetaConnection(JSONObject data, BulletinBoardInterface bulletinBoard, UserInterface ui, Client client,
+                          ConnectionHandler connectionHandler) {
+        super(bulletinBoard);
+        ConnectionInfo ab = new ConnectionInfo(data.getJSONObject("ab"));
+        ConnectionInfo ba = new ConnectionInfo(data.getJSONObject("ba"));
+        super.ab = ab;
+        super.ba = ba;
+        this.ui = ui;
+        this.client = client;
+        this.connectionHandler = connectionHandler;
+        confirmed = data.getBoolean("confirmed");
     }
 
     private ConnectionInfo[] calculateBumpConnectionInfo(String bumpstring, String passphrase) {
@@ -71,6 +92,7 @@ public class MetaConnection extends Connection {
         sendMessage(new ChatMessage(name, "name," + bumpstring + "," + client.getUsername()));
         sendMessage(new ChatMessage(name, "databumpstring," + dataBumpstring));
         startFetcher();
+        confirmed = true;
     }
 
     private ConnectionInfo[] calculateBumpBackConnectionInfo(String bumpstring, String passphrase) {
@@ -105,6 +127,7 @@ public class MetaConnection extends Connection {
         String name = connectionHandler.getName();
         sendMessage(new ChatMessage(name, "name," + bumpstring + "," + client.getUsername()));
         startFetcher();
+        confirmed = true;
     }
 
     @Override
@@ -160,6 +183,7 @@ public class MetaConnection extends Connection {
         connectionHandler.setName(name);
         int index = ui.addContact(name);
         client.changeChatName(index, oldName);
+        client.saveState();
     }
 
     public void startFetcher() {
@@ -169,6 +193,7 @@ public class MetaConnection extends Connection {
             while (true) {
                 try {
                     task.run();
+                    client.saveState();
                     Thread.sleep(MESSAGE_FETCH_INTERVAL);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -179,5 +204,9 @@ public class MetaConnection extends Connection {
         });
 
         fetcher.start();
+    }
+
+    public boolean isConfirmed() {
+        return confirmed;
     }
 }

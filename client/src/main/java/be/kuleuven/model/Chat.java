@@ -3,22 +3,83 @@ package be.kuleuven.model;
 import java.util.ArrayList;
 import be.kuleuven.connection.ConnectionHandler;
 import be.kuleuven.UserInterface;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import be.kuleuven.connection.Client;
 
-public class Chat extends ArrayList<ChatMessage> {
-    private final ArrayList<ConnectionHandler> connectionHandlers;
+public class Chat {
+    private static int count = 0;
+    private ArrayList<ConnectionHandler> connectionHandlers;
+    private ArrayList<ChatMessage> messages;
     private final UserInterface ui;
     private String name;
+    private int id;
 
     public Chat(UserInterface ui, String name) {
-        super();
         connectionHandlers = new ArrayList<>();
+        messages = new ArrayList<>();
         this.ui = ui;
         this.name = name;
+        this.id = count++;
+    }
+
+    public JSONObject toJSONObect() {
+        synchronized(this) {
+            JSONObject output = new JSONObject();
+            output.put("id", this.id);
+            output.put("name", this.name);
+
+            JSONArray connectionHandlers = new JSONArray();
+            for (ConnectionHandler connectionHandler : this.connectionHandlers) {
+                connectionHandlers.put(connectionHandler.toJSONObject());
+            }
+
+            output.put("connectionHandlers", connectionHandlers);
+
+            JSONArray messages = new JSONArray();
+            for (ChatMessage message : this.messages) {
+                messages.put(message.toJSONObject());
+            }
+
+            output.put("messages", messages);
+
+            return output;
+        }
+    }
+
+    public Chat(JSONObject data, UserInterface ui) {
+        id = data.getInt("id");
+        name = data.getString("name");
+        this.ui = ui;
+
+        connectionHandlers = new ArrayList<>();
+        for (Object o : data.getJSONArray("connectionHandlers")) {
+            JSONObject jsonObject = (JSONObject) o;
+            connectionHandlers.add(new ConnectionHandler(jsonObject, this, Client.getBulletinBoard(), ui, Client.getInstance()));
+        }
+
+        messages = new ArrayList<>();
+
+        try {
+            for (Object o : data.getJSONArray("messages")) {
+                JSONObject jsonObject = (JSONObject) o;
+                messages.add(new ChatMessage(jsonObject));
+            }
+        } catch(Exception e) {}
+
+        ui.update(this);
     }
 
     public void add(ConnectionHandler connectionHandler) {
         synchronized(this) {
             connectionHandlers.add(connectionHandler);
+        }
+    }
+
+    public void add(ChatMessage message) {
+        synchronized(this) {
+            messages.add(message);
+            ui.update(this);
         }
     }
 
@@ -32,40 +93,9 @@ public class Chat extends ArrayList<ChatMessage> {
         }
     }
 
-    public boolean add(ChatMessage message) {
-        synchronized(this) {
-            boolean result = super.add(message);
-            ui.update(this);
-            return result;
-        }
-    }
-
-    @Override
-    public String toString() {
-        synchronized(this) {
-            StringBuilder sb = new StringBuilder();
-            for (ChatMessage message : this) {
-                sb.append(message).append("\n");
-            }
-            return sb.toString();
-        }
-    }
-
     public String getName() {
-        return name;
-    }
-
-    public String[] sendBump() {
-        // Array of bumpstring the new client has to bump with, you first bump with the client you add and then send this
-        // array as the second message so he can add every single one of them and bump with them
         synchronized(this) {
-            String[] result = new String[connectionHandlers.size()];
-
-            for (ConnectionHandler connectionHandler : connectionHandlers) {
-                result[connectionHandlers.indexOf(connectionHandler)] = connectionHandler.sendBump();
-            }
-
-            return result;
+            return name;
         }
     }
 
@@ -73,5 +103,20 @@ public class Chat extends ArrayList<ChatMessage> {
         synchronized(this) {
             this.name = chatName;
         }
+    }
+
+    @Override
+    public String toString() {
+        synchronized(this) {
+            StringBuilder sb = new StringBuilder();
+            for (ChatMessage message : messages) {
+                sb.append(message).append("\n");
+            }
+            return sb.toString();
+        }
+    }
+
+    public int getId() {
+        return this.id;
     }
 }

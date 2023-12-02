@@ -10,16 +10,12 @@ import javax.crypto.NoSuchPaddingException;
 import java.rmi.RemoteException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.Base64;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import org.json.JSONObject;
 
 public class DataConnection extends Connection {
     private Chat chat;
     private String name;
-    private Thread fetcher;
 
     public DataConnection(ConnectionInfo ab, ConnectionInfo ba, BulletinBoardInterface bulletinBoard, Chat chat, String name) {
         super(bulletinBoard);
@@ -27,6 +23,23 @@ public class DataConnection extends Connection {
         super.ba = ba;
         this.chat = chat;
         this.name = name;
+    }
+
+    public JSONObject toJSONObject() {
+        JSONObject output = new JSONObject();
+        output.put("name", name);
+        super.toJSONObject(output);
+        return output;
+    }
+
+    public DataConnection(JSONObject data, BulletinBoardInterface bulletinBoard, Chat chat) {
+        super(bulletinBoard);
+        ConnectionInfo ab = new ConnectionInfo(data.getJSONObject("ab"));
+        ConnectionInfo ba = new ConnectionInfo(data.getJSONObject("ba"));
+        super.ab = ab;
+        super.ba = ba;
+        this.chat = chat;
+        name = data.getString("name");
     }
 
     @Override
@@ -90,6 +103,7 @@ public class DataConnection extends Connection {
             while (true) {
                 try {
                     task.run();
+                    Client.getInstance().saveState();
                     Thread.sleep(MESSAGE_FETCH_INTERVAL);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();

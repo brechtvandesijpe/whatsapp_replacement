@@ -1,6 +1,7 @@
 package be.kuleuven.model;
 
 import be.kuleuven.connection.SecurityManager;
+import org.json.JSONObject;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -10,12 +11,24 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 public class ChatMessage {
-    private final String username;
-    private final String message;
+    private String username;
+    private String message;
 
     public ChatMessage(String username, String message) {
         this.username = username;
         this.message = message;
+    }
+
+    public JSONObject toJSONObject() {
+        JSONObject output = new JSONObject();
+        output.put("username", username);
+        output.put("message", message);
+        return output;
+    }
+
+    public ChatMessage(JSONObject data) {
+        username = data.getString("username");
+        message = data.getString("message");
     }
 
     public String getUsername() {

@@ -10,7 +10,7 @@ import java.rmi.RemoteException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Base64;
+import org.json.JSONObject;
 
 public abstract class Connection {
     protected static final int TAG_SUBSTRING_START = 0;
@@ -92,4 +92,9 @@ public abstract class Connection {
     }
 
     public abstract void fetchMessages();
+
+    protected void toJSONObject(JSONObject output) {
+        output.put("ab", ab.toJSONObject());
+        output.put("ba", ba.toJSONObject());
+    }
 }
