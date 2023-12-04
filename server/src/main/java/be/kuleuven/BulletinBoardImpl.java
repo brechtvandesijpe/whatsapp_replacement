@@ -31,10 +31,7 @@ public class BulletinBoardImpl extends UnicastRemoteObject implements BulletinBo
     // Retrieve a message from a specified mailbox using the hashed tag
     @Override
     public byte[] getMessage(int boxNumber, byte[] tag) throws NoSuchAlgorithmException, RemoteException {
-        MessageDigest messageDigest = MessageDigest.getInstance(HASH_ALGORITHM);
-        byte[] hashedTag = messageDigest.digest(tag);
-        Mailbox targetMailbox = BulletinBoardImpl.bulletinBoard[boxNumber];
-        return targetMailbox.getMessageByTag(hashedTag);
+
     }
 
     // Post a message to a specified mailbox using the hashed tag

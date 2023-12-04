@@ -39,7 +39,8 @@ public class UserInterface extends JFrame {
     public UserInterface(String title) {
         super(title);
 
-        String username = JOptionPane.showInputDialog("Please fill in your usename: ");
+        String username = "";
+        while (username.isEmpty()) username = JOptionPane.showInputDialog("Please fill in your usename: ");
         try {
             client = Client.createInstance(username, this);
         } catch(RemoteException ex) {
