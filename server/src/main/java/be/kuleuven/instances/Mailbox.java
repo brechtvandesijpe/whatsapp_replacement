@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Mailbox {
 
-    // Map to store messages with tags as keys and message content as values
+    private static final int NUM_MESSAGES = 64;
     private Map<String, byte[]> messageMap;
 
     public Mailbox() {
@@ -35,6 +35,15 @@ public class Mailbox {
         return message;
     }
 
+    public boolean isFUll() {
+        return messageMap.size() == NUM_MESSAGES;
+    }
+
+    public boolean isEmpty() {
+        return messageMap.isEmpty();
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("mailbox { messageMap: {");
@@ -44,5 +53,4 @@ public class Mailbox {
         sb.append("}}");
         return sb.toString();
     }
-
 }

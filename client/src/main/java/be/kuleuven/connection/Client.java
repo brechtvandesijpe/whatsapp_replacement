@@ -85,15 +85,15 @@ public class Client extends UnicastRemoteObject {
     }
 
     public void leave() {
-        try {
+//        try {
             chats.remove(ui.getSelectedContact());
             ui.removeSelectedContact();
-            bulletinBoard.leave(username);
-        } catch(RemoteException ex) {
-            ui.showErrorDialog("Action not executed, server down!");
-            ui.setButtonsEnabled(true, false, false, false, false, false);
-            ui.setRecoveryMode();
-        }
+//            bulletinBoard.leave(username);
+//        } catch(RemoteException ex) {
+//            ui.showErrorDialog("Action not executed, server down!");
+//            ui.setButtonsEnabled(true, false, false, false, false, false);
+//            ui.setRecoveryMode();
+//        }
     }
 
     public static void connectToRMIServer() throws RemoteException {

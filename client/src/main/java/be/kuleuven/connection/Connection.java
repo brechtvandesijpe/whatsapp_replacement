@@ -79,6 +79,7 @@ public abstract class Connection {
         }
 
         MessageHandler.deriveAndUpdateSecretKey(ab);
+        System.out.println("boxNumber = " + boxNumber + ", hashedTag = " + Arrays.toString(hashedTag));
         bulletinBoard.postMessage(boxNumber, hashedMessage, hashedTag);
     }
 

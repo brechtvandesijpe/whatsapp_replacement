@@ -4,52 +4,106 @@ import be.kuleuven.instances.*;
 import be.kuleuven.interfaces.BulletinBoardInterface;
 
 import java.net.*;
+import java.nio.ByteBuffer;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.security.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 public class BulletinBoardImpl extends UnicastRemoteObject implements BulletinBoardInterface {
 
-    private static final int NUM_MAILBOXES = 64;
     // Host name for the RMI registry
     private static final String HOST_NAME = "localhost";
     // RMI service name
     private static final String SERVICE = "chat";
-    private static final String HASH_ALGORITHM = "SHA-256";
     private static final int REGISTRY_PORT = 1099;
+    private static final String HASH_ALGORITHM = "SHA-256";
+    private ApplicationServer freeServer;
+    private ArrayList<ApplicationServer> servers;
+    private HashMap<Integer, ApplicationServer> serverMap;
+    private double occupancy;
+    private int numAssigned;
+    private int numTotal;
 
-    private static Mailbox[] bulletinBoard;
 
     public BulletinBoardImpl() throws RemoteException {
-        BulletinBoardImpl.bulletinBoard = new Mailbox[NUM_MAILBOXES];
-        for (int i = 0; i < NUM_MAILBOXES; i++) {
-            bulletinBoard[i] = new Mailbox();
-        }
-        System.out.println("BulletinBoard initialized succesfully.");
+        super();
+        freeServer = new ApplicationServer();
+        servers = new ArrayList<>();
+        servers.add(freeServer);
+        serverMap = new HashMap<>();
+        occupancy = 0.0;
+        numAssigned = 0;
+        numTotal = freeServer.getAmountOfMailboxes();
     }
 
     // Retrieve a message from a specified mailbox using the hashed tag
     @Override
     public byte[] getMessage(int boxNumber, byte[] tag) throws NoSuchAlgorithmException, RemoteException {
+        numAssigned--;
+        calculateOccupancy();
 
+        MessageDigest messageDigest = MessageDigest.getInstance(HASH_ALGORITHM);
+        byte[] hashedTag = messageDigest.digest(tag);
+
+        Integer key = transform(boxNumber, hashedTag);
+        ApplicationServer server = serverMap.get(key);
+        while (server == null) {
+            server = serverMap.get(key);
+        }
+
+        byte[] message = server.getMessage(boxNumber, hashedTag);
+
+        if (server.isEmpty() && occupancy < 0.8) {
+            numAssigned -= server.getAmountOfMailboxes();
+            calculateOccupancy();
+            server.interrupt();
+            servers.remove(server);
+            serverMap.remove(tag);
+        }
+
+        return message;
+    }
+
+    private int transform(int boxNumber, byte[] tag) {
+        return boxNumber + Arrays.hashCode(tag);
     }
 
     // Post a message to a specified mailbox using the hashed tag
     @Override
     public void postMessage(int boxNumber, byte[] message, byte[] hashedTag) throws RemoteException {
-        bulletinBoard[boxNumber].storeMessage(hashedTag, message);
+        numAssigned++;
+        calculateOccupancy();
+
+        if (occupancy >= 0.8) {
+            ApplicationServer newServer = new ApplicationServer();
+            newServer.start();
+            servers.add(newServer);
+            numTotal += newServer.getAmountOfMailboxes();
+            calculateOccupancy();
+            freeServer = newServer;
+        }
+
+        freeServer.postMessage(boxNumber, message, hashedTag);
+        serverMap.put(transform(boxNumber, hashedTag), freeServer);
     }
 
-    // Notify when a client leaves the chat
-    @Override
-    public void leave(String clientName) throws RemoteException {
-        System.err.println(clientName + " has left.");
+    private void calculateOccupancy() {
+        occupancy = (double) numAssigned / (double) numTotal;
     }
 
     // Get the total number of mailboxes on the bulletin board
     @Override
     public int getAmountOfMailboxes() throws RemoteException {
-        return bulletinBoard.length;
+        synchronized(this) {
+            return freeServer.getAmountOfMailboxes();
+        }
+    }
+
+    public int getAmountOfServers() {
+        return servers.size();
     }
 
     // Main method to start the Bulletin Board server
@@ -80,30 +134,5 @@ public class BulletinBoardImpl extends UnicastRemoteObject implements BulletinBo
             System.err.println("Error occured when starting BulletinBoardServer");
             e.printStackTrace();
         }
-    }
-
-    public static Mailbox[] getBulletinBoard() {
-        return bulletinBoard;
-    }
-
-    public static void setBulletinBoard(Mailbox[] bulletinBoard) {
-        BulletinBoardImpl.bulletinBoard = bulletinBoard;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Bulletin Board Information:\n");
-        sb.append("Host Name: ").append(HOST_NAME).append("\n");
-        sb.append("Service Name: ").append(SERVICE).append("\n");
-        sb.append("Number of Mailboxes: ").append(NUM_MAILBOXES).append("\n");
-        sb.append("Bulletin Board Status:\n");
-
-        for (int i = 0; i < NUM_MAILBOXES; i++) {
-            sb.append("Mailbox ").append(i).append(": ");
-            sb.append(bulletinBoard[i].toString()).append("\n");
-        }
-
-        return sb.toString();
     }
 }
