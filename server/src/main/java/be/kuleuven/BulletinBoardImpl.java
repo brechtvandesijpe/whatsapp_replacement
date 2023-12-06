@@ -56,7 +56,7 @@ public class BulletinBoardImpl extends UnicastRemoteObject implements BulletinBo
 
         byte[] message = server.getMessage(boxNumber, hashedTag);
 
-        if (server.isEmpty() && occupancy < 0.8) {
+        if (servers.size() > 1 && server.isEmpty() && occupancy < 0.8) {
             numAssigned -= server.getAmountOfMailboxes();
             calculateOccupancy();
             server.interrupt();
