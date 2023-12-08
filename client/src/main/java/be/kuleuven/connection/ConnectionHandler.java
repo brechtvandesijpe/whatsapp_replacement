@@ -16,11 +16,13 @@ public class ConnectionHandler {
     private DataConnection dataConnection;
     private MetaConnection metaConnection;
     private int id;
+    private Client client;
 
     public ConnectionHandler(String name, Chat chat, BulletinBoardInterface bulletinBoard, UserInterface ui, Client client) {
         this.name = name;
         this.chat = chat;
         this.bulletinBoard = bulletinBoard;
+        this.client = client;
         metaConnection = new MetaConnection(bulletinBoard, ui, client, this);
         id = count++;
     }
@@ -46,7 +48,7 @@ public class ConnectionHandler {
         metaConnection.startFetcher();
 
         if (metaConnection.isConfirmed()) {
-            dataConnection = new DataConnection(data.getJSONObject("dataConnection"), bulletinBoard, chat);
+            dataConnection = new DataConnection(data.getJSONObject("dataConnection"), bulletinBoard, chat, client);
             dataConnection.startFetcher();
         }
 
@@ -80,11 +82,24 @@ public class ConnectionHandler {
             System.out.println(e.getMessage());
         }
 
-        dataConnection = new DataConnection(ab, ba, bulletinBoard, chat, name);
+        dataConnection = new DataConnection(ab, ba, bulletinBoard, chat, name, client);
         dataConnection.startFetcher();
     }
 
     public int getId() {
         return id;
+    }
+
+    public void leave() throws RemoteException {
+        dataConnection.stopFetcher();
+        metaConnection.leave();
+        metaConnection.stopFetcher();
+    }
+
+    public void stopConnection(String username) {
+        dataConnection.stopFetcher();
+        metaConnection.stopFetcher();
+        chat.add(new ChatMessage("SYSTEM",username + " has left the chat"));
+        chat.stopConnection(this);
     }
 }

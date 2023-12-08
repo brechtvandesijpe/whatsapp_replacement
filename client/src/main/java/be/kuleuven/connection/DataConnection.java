@@ -16,13 +16,15 @@ import org.json.JSONObject;
 public class DataConnection extends Connection {
     private Chat chat;
     private String name;
+    private Client client;
 
-    public DataConnection(ConnectionInfo ab, ConnectionInfo ba, BulletinBoardInterface bulletinBoard, Chat chat, String name) {
+    public DataConnection(ConnectionInfo ab, ConnectionInfo ba, BulletinBoardInterface bulletinBoard, Chat chat, String name, Client client) {
         super(bulletinBoard);
         super.ab = ab;
         super.ba = ba;
         this.chat = chat;
         this.name = name;
+        this.client = client;
     }
 
     public JSONObject toJSONObject() {
@@ -32,13 +34,14 @@ public class DataConnection extends Connection {
         return output;
     }
 
-    public DataConnection(JSONObject data, BulletinBoardInterface bulletinBoard, Chat chat) {
+    public DataConnection(JSONObject data, BulletinBoardInterface bulletinBoard, Chat chat, Client client) {
         super(bulletinBoard);
         ConnectionInfo ab = new ConnectionInfo(data.getJSONObject("ab"));
         ConnectionInfo ba = new ConnectionInfo(data.getJSONObject("ba"));
         super.ab = ab;
         super.ba = ba;
         this.chat = chat;
+        this.client = client;
         name = data.getString("name");
     }
 
@@ -54,35 +57,38 @@ public class DataConnection extends Connection {
 
         try {
             message = bulletinBoard.getMessage(ba.getBoxNumber(), ba.getTag());
-        } catch (NoSuchAlgorithmException | RemoteException e) {
-//            System.out.println(e.getMessage());
-        }
 
-        while (message != null) {
-            String newMessage = null;
+            while (message != null) {
+                String newMessage = null;
 
-            try {
-                newMessage = new String(SecurityManager.decryptMessage(message, ba.getSecretKey()));
+                try {
+                    newMessage = new String(SecurityManager.decryptMessage(message, ba.getSecretKey()));
 
-                byte[] tag = newMessage.substring(TAG_SUBSTRING_START, TAG_SUBSTRING_END).getBytes();
-                int boxNumber = Integer.parseInt(newMessage.substring(BOX_NUMBER_SUBSTRING_START, BOX_NUMBER_SUBSTRING_END));
-                String payload = newMessage.substring(BOX_NUMBER_SUBSTRING_END);
+                    byte[] tag = newMessage.substring(TAG_SUBSTRING_START, TAG_SUBSTRING_END).getBytes();
+                    int boxNumber = Integer.parseInt(newMessage.substring(BOX_NUMBER_SUBSTRING_START, BOX_NUMBER_SUBSTRING_END));
+                    String payload = newMessage.substring(BOX_NUMBER_SUBSTRING_END);
 
-                ba.setTag(tag);
-                ba.setBoxNumber(boxNumber);
-                ba.setSecretKey(SecurityManager.getSymmetricKey(Base64.getEncoder().encodeToString(ba.getSecretKey().getEncoded()), deriveSalt(tag)));
+                    ba.setTag(tag);
+                    ba.setBoxNumber(boxNumber);
+                    ba.setSecretKey(SecurityManager.getSymmetricKey(Base64.getEncoder().encodeToString(ba.getSecretKey().getEncoded()), deriveSalt(tag)));
 
-                chat.add(new ChatMessage(name, payload));
-            } catch (InvalidKeyException | NoSuchPaddingException | NoSuchAlgorithmException |
-                     IllegalBlockSizeException | BadPaddingException e) {
-//                System.out.println(e.getMessage());
+                    chat.add(new ChatMessage(name, payload));
+                    client.saveState();
+                } catch (InvalidKeyException | NoSuchPaddingException | NoSuchAlgorithmException |
+                         IllegalBlockSizeException | BadPaddingException e) {
+    //                System.out.println(e.getMessage());
+                }
+
+                try {
+                    message  = bulletinBoard.getMessage(ba.getBoxNumber(), ba.getTag());
+                } catch (NoSuchAlgorithmException | RemoteException e) {
+                    throw new RuntimeException(e);
+                }
             }
-
-            try {
-                message  = bulletinBoard.getMessage(ba.getBoxNumber(), ba.getTag());
-            } catch (NoSuchAlgorithmException | RemoteException e) {
-                throw new RuntimeException(e);
-            }
+        } catch (NoSuchAlgorithmException e) {
+            // IGNORE
+        } catch (RemoteException e) {
+            client.setRecoveryMode();
         }
     }
 
@@ -92,14 +98,10 @@ public class DataConnection extends Connection {
         return salt;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public void startFetcher() {
         Runnable task = this::fetchMessages;
 
-        Thread fetcher = new Thread(() -> {
+        fetcher = new Thread(() -> {
             while (true) {
                 try {
                     task.run();
@@ -114,9 +116,5 @@ public class DataConnection extends Connection {
         });
 
         fetcher.start();
-    }
-
-    public void stopFetcher() {
-
     }
 }

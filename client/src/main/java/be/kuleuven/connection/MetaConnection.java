@@ -25,6 +25,7 @@ public class MetaConnection extends Connection {
     private final ConnectionHandler connectionHandler;
     private ConnectionInfo[] dataConnectionInfo;
     private boolean confirmed;
+    private String name;
 
     public MetaConnection(BulletinBoardInterface bulletinBoard, UserInterface ui, Client client,
                             ConnectionHandler connectionHandler) {
@@ -135,41 +136,45 @@ public class MetaConnection extends Connection {
 
         try {
             message = bulletinBoard.getMessage(ba.getBoxNumber(), ba.getTag());
-        } catch (NoSuchAlgorithmException | RemoteException e) {
-//            System.out.println(e.getMessage());
-        }
 
-        while (message != null) {
-            String newMessage = null;
+            while (message != null) {
+                String newMessage = null;
 
-            try {
-                newMessage = new String(SecurityManager.decryptMessage(message, ba.getSecretKey()));
+                try {
+                    newMessage = new String(SecurityManager.decryptMessage(message, ba.getSecretKey()));
 
-                byte[] tag = newMessage.substring(TAG_SUBSTRING_START, TAG_SUBSTRING_END).getBytes();
-                int boxNumber = Integer.parseInt(newMessage.substring(BOX_NUMBER_SUBSTRING_START, BOX_NUMBER_SUBSTRING_END));
-                String payload = newMessage.substring(BOX_NUMBER_SUBSTRING_END);
+                    byte[] tag = newMessage.substring(TAG_SUBSTRING_START, TAG_SUBSTRING_END).getBytes();
+                    int boxNumber = Integer.parseInt(newMessage.substring(BOX_NUMBER_SUBSTRING_START, BOX_NUMBER_SUBSTRING_END));
+                    String payload = newMessage.substring(BOX_NUMBER_SUBSTRING_END);
 
-                ba.setTag(tag);
-                ba.setBoxNumber(boxNumber);
-                ba.setSecretKey(SecurityManager.getSymmetricKey(Base64.getEncoder().encodeToString(ba.getSecretKey().getEncoded()), MessageHandler.deriveSalt(tag)));
+                    ba.setTag(tag);
+                    ba.setBoxNumber(boxNumber);
+                    ba.setSecretKey(SecurityManager.getSymmetricKey(Base64.getEncoder().encodeToString(ba.getSecretKey().getEncoded()), MessageHandler.deriveSalt(tag)));
 
-                String[] parts = payload.split(",");
-                System.out.println("Metafetcher got Parts: " + Arrays.toString(parts));
-                if (parts[0].equals("name")) {
-                    setName(parts[1], parts[2]);
-                    connectionHandler.startDataConnection(dataConnectionInfo[0], dataConnectionInfo[1]);
+                    String[] parts = payload.split(",");
+                    System.out.println("Metafetcher got Parts: " + Arrays.toString(parts));
+                    if (parts[0].equals("name")) {
+                        setName(parts[1], parts[2]);
+                        connectionHandler.startDataConnection(dataConnectionInfo[0], dataConnectionInfo[1]);
+                    }
+                    if (parts[0].equals("databumpstring")) setDataBumpstring(parts[1]);
+                    if (parts[0].equals("leave")) connectionHandler.stopConnection(name);
+                    client.saveState();
+                } catch (InvalidKeyException | NoSuchPaddingException | NoSuchAlgorithmException |
+                         IllegalBlockSizeException | BadPaddingException | NullPointerException e) {
+                    System.out.println(e.getMessage());
                 }
-                if (parts[0].equals("databumpstring")) setDataBumpstring(parts[1]);
-            } catch (InvalidKeyException | NoSuchPaddingException | NoSuchAlgorithmException |
-                     IllegalBlockSizeException | BadPaddingException | NullPointerException e) {
-                System.out.println(e.getMessage());
-            }
 
-            try {
-                message  = bulletinBoard.getMessage(ba.getBoxNumber(), ba.getTag());
-            } catch (NoSuchAlgorithmException | RemoteException e) {
-                throw new RuntimeException(e);
+                try {
+                    message  = bulletinBoard.getMessage(ba.getBoxNumber(), ba.getTag());
+                } catch (NoSuchAlgorithmException | RemoteException e) {
+                    throw new RuntimeException(e);
+                }
             }
+        } catch(NoSuchAlgorithmException e) {
+            // IGNORE
+        } catch(RemoteException e) {
+            client.setRecoveryMode();
         }
     }
 
@@ -179,6 +184,7 @@ public class MetaConnection extends Connection {
     }
 
     private void setName(String oldName, String name) {
+        this.name = name;
         connectionHandler.setName(name);
         int index = ui.addContact(name);
         client.changeChatName(index, oldName);
@@ -188,7 +194,7 @@ public class MetaConnection extends Connection {
     public void startFetcher() {
         Runnable task = this::fetchMessages;
 
-        Thread fetcher = new Thread(() -> {
+        fetcher = new Thread(() -> {
             while (true) {
                 try {
                     task.run();
@@ -207,5 +213,10 @@ public class MetaConnection extends Connection {
 
     public boolean isConfirmed() {
         return confirmed;
+    }
+
+    public void leave() throws RemoteException {
+        String name = connectionHandler.getName();
+        sendMessage(new ChatMessage(name, "leave" + "," + client.getUsername()));
     }
 }

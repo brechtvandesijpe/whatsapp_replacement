@@ -1,1 +1,65 @@
-{"chats":[{"chat":{"name":"v8ndyezpjm","messages":[{"message":"test","username":"Brecht"},{"message":"test","username":"Reinout"},{"message":"test","username":"Brecht"},{"message":"test","username":"Reinout"}],"id":0,"connectionHandlers":[{"name":"Reinout","id":0,"dataConnection":{"ab":{"boxNumber":29,"tag":"TiMkMm9wR1Q3YWtET1EhejRucz50SWtGYnNtNF93b2lNJmRKSlJnRG1rI21zMkQ3Pk5tb0c+JHJ4RDBnajN3RygwbkRYNFA2KW9rYzdSV1JIVmMrIzFBQGhNOUtXKXE3WFUpPyl5V2IyeEhkQ2F0Jkl6c3UjekdOb19IcSliYl5MdDNYRGQ9TURAd25JUGIrclM8TGxeZTBWP0hjNVdKXk1BZHBEOVcmeTQmIys2bnlLSmg5TEVjOFBIOSFueTJaVVcqYTFMMEQ2Xnp0Ny0jOTFKdnYoaSNxeSVSUz5BeWNTbUVoMG54OXIrI3NYVG9eYWsrVTVqVygkNWxWI0ByTg==","key":"nNlSk+HkO81IioW6n9LZrDcwxeqj/xQy+cuzUrYXoMM="},"name":"Reinout","ba":{"boxNumber":58,"tag":"azN3XyEpOHhQVFMtbj15XzRVQWMtcFk3Yk5oUGgjUloyY0dWY3oocVdsTyhmSk53Wil4cEJncVlzJGY+aE5fRGwkcDNMdiUwdEc3TUlOcCFJVDFSKCExUDMmPkRtbi1iJSZIRV5hOVYtYmUmXypjWmhfeldGa29odkhueChQYUFpbERSSVZvMytMXzJeUm1YQ0FoYm49MEBsS2QkP19NayVvTCpVNzdJTzElQEokPFA+QllJKlVzZTg5PFNkNypzTlhhZldnMXVtcTBMQzRrVClZYilZJHdMSzY1NldhcHUoeXhBSSU4bHg8QF4/TCtGZjIkbEskeis0amowY3MrbQ==","key":"KC5LUXlaKJ3gj5gnXDtpQkZrhqFM3lyHO5+VqwgZ+/U="}},"metaConnection":{"ab":{"boxNumber":33,"tag":"Vk5YSXRHZUtyJWdsckpEJWI5JU00N05AQyl5NlM0biYxaHgjQ21NZ2plUUF1aSREZ05UKEM9Zko3Uzg2YXY/NlMoUCFGZFZhcUB6cSM2aEw4ZFE+YUFPT1FrS09JUUBWUV8jVDJ1LXIxKTE2T091bXo+UFAzZkVfKHRKSHJlPFhuSEx0d2tFdCUqQXlFWHo0dyhqQG9TZjltdjBZS0hFITR2VVphaWRWRTxwQEotVzZWWkFKT2k8Nmc/UVJURHFYNT5WUmhAY3h5bCE2a1hjMmFISVBIU3YlN1JeJkFkVjFPQmh5SSU3JTE/QHY9bFJiKVJAJDhAWTVXeEBUVDVqQw==","key":"ZigyRYlMbnlsurHRxWX1dV26Y47bs2dPMBLnGTFYHTQ="},"confirmed":true,"ba":{"boxNumber":13,"tag":"enZmdTdUUEpCZXQkOUpNdlJQSVhnb0wtbT1pVXFxXjcwWEJ2R0BsKSoyYXdSNkwyb3M8NTNyc3oxc3AhTjJmI0t0UnYlP0A3Uiswekt4SVBtS0J3PXlAQiRebzA4Iz8kZ01LIzlfTm0hTiRIdjk9Tyh2MUBtckpGMCk3ayVhSGwpXzVMOSt5SlJpWmR3UXJMVDBacV5xcW42QnM0RGhtUSppV2dhQz94SkUwWSNRN3ZaTWRkK2xGREoyMjJxJF5vcHpTPlZseihuUm10czlzJUBpNWhURVpEZDlBYzA/MWFTPEl0MjkjP2IkKFdNZDBGUEFmJHFlU2cpPWszXmRXMA==","key":"qR4rdz6zL7DhRe8w3QrWmao82GKcGNO3m/4qqz3XTDQ="}}}]},"key":0}],"contacts":["Reinout"],"username":"Brecht"}
+{
+  "chats": [
+    {
+      "chat": {
+        "name": "v8ndyezpjm",
+        "messages": [
+          {
+            "message": "test",
+            "username": "Brecht"
+          },
+          {
+            "message": "test",
+            "username": "Reinout"
+          },
+          {
+            "message": "test",
+            "username": "Brecht"
+          },
+          {
+            "message": "test",
+            "username": "Reinout"
+          }
+        ],
+        "id": 0,
+        "connectionHandlers": [
+          {
+            "name": "Reinout",
+            "id": 0,
+            "dataConnection": {
+              "ab": {
+                "boxNumber": 29,
+                "tag": "TiMkMm9wR1Q3YWtET1EhejRucz50SWtGYnNtNF93b2lNJmRKSlJnRG1rI21zMkQ3Pk5tb0c+JHJ4RDBnajN3RygwbkRYNFA2KW9rYzdSV1JIVmMrIzFBQGhNOUtXKXE3WFUpPyl5V2IyeEhkQ2F0Jkl6c3UjekdOb19IcSliYl5MdDNYRGQ9TURAd25JUGIrclM8TGxeZTBWP0hjNVdKXk1BZHBEOVcmeTQmIys2bnlLSmg5TEVjOFBIOSFueTJaVVcqYTFMMEQ2Xnp0Ny0jOTFKdnYoaSNxeSVSUz5BeWNTbUVoMG54OXIrI3NYVG9eYWsrVTVqVygkNWxWI0ByTg==",
+                "key": "nNlSk+HkO81IioW6n9LZrDcwxeqj/xQy+cuzUrYXoMM="
+              },
+              "name": "Reinout",
+              "ba": {
+                "boxNumber": 58,
+                "tag": "azN3XyEpOHhQVFMtbj15XzRVQWMtcFk3Yk5oUGgjUloyY0dWY3oocVdsTyhmSk53Wil4cEJncVlzJGY+aE5fRGwkcDNMdiUwdEc3TUlOcCFJVDFSKCExUDMmPkRtbi1iJSZIRV5hOVYtYmUmXypjWmhfeldGa29odkhueChQYUFpbERSSVZvMytMXzJeUm1YQ0FoYm49MEBsS2QkP19NayVvTCpVNzdJTzElQEokPFA+QllJKlVzZTg5PFNkNypzTlhhZldnMXVtcTBMQzRrVClZYilZJHdMSzY1NldhcHUoeXhBSSU4bHg8QF4/TCtGZjIkbEskeis0amowY3MrbQ==",
+                "key": "KC5LUXlaKJ3gj5gnXDtpQkZrhqFM3lyHO5+VqwgZ+/U="
+              }
+            },
+            "metaConnection": {
+              "ab": {
+                "boxNumber": 33,
+                "tag": "Vk5YSXRHZUtyJWdsckpEJWI5JU00N05AQyl5NlM0biYxaHgjQ21NZ2plUUF1aSREZ05UKEM9Zko3Uzg2YXY/NlMoUCFGZFZhcUB6cSM2aEw4ZFE+YUFPT1FrS09JUUBWUV8jVDJ1LXIxKTE2T091bXo+UFAzZkVfKHRKSHJlPFhuSEx0d2tFdCUqQXlFWHo0dyhqQG9TZjltdjBZS0hFITR2VVphaWRWRTxwQEotVzZWWkFKT2k8Nmc/UVJURHFYNT5WUmhAY3h5bCE2a1hjMmFISVBIU3YlN1JeJkFkVjFPQmh5SSU3JTE/QHY9bFJiKVJAJDhAWTVXeEBUVDVqQw==",
+                "key": "ZigyRYlMbnlsurHRxWX1dV26Y47bs2dPMBLnGTFYHTQ="
+              },
+              "confirmed": true,
+              "ba": {
+                "boxNumber": 13,
+                "tag": "enZmdTdUUEpCZXQkOUpNdlJQSVhnb0wtbT1pVXFxXjcwWEJ2R0BsKSoyYXdSNkwyb3M8NTNyc3oxc3AhTjJmI0t0UnYlP0A3Uiswekt4SVBtS0J3PXlAQiRebzA4Iz8kZ01LIzlfTm0hTiRIdjk9Tyh2MUBtckpGMCk3ayVhSGwpXzVMOSt5SlJpWmR3UXJMVDBacV5xcW42QnM0RGhtUSppV2dhQz94SkUwWSNRN3ZaTWRkK2xGREoyMjJxJF5vcHpTPlZseihuUm10czlzJUBpNWhURVpEZDlBYzA/MWFTPEl0MjkjP2IkKFdNZDBGUEFmJHFlU2cpPWszXmRXMA==",
+                "key": "qR4rdz6zL7DhRe8w3QrWmao82GKcGNO3m/4qqz3XTDQ="
+              }
+            }
+          }
+        ]
+      },
+      "key": 0
+    }
+  ],
+  "contacts": [
+    "Reinout"
+  ],
+  "username": "Brecht"
+}

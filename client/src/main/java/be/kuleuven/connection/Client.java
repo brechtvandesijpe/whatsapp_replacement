@@ -50,7 +50,7 @@ public class Client extends UnicastRemoteObject {
             connectToRMIServer();
             ui.initiate(username);
         } catch(RemoteException e) {
-            ui.showErrorDialog(e.getMessage());
+            ui.showErrorDialog("Connection to server could not be established, please try again when back online.");
         }
     }
 
@@ -63,9 +63,7 @@ public class Client extends UnicastRemoteObject {
             chats.put(bumpstring.hashCode(), chat);
             saveState();
         } catch(RemoteException e) {
-            ui.showErrorDialog("Action not executed, server down!");
-            ui.setButtonsEnabled(true, false, false, false, false, false);
-            ui.setRecoveryMode();
+            setRecoveryMode();
         }
     }
 
@@ -78,22 +76,26 @@ public class Client extends UnicastRemoteObject {
             chats.put(bumpstring.hashCode(), chat);
             saveState();
         } catch(RemoteException e) {
-            ui.showErrorDialog("Action not executed, server down!");
-            ui.setButtonsEnabled(true, false, false, false, false, false);
-            ui.setRecoveryMode();
+            setRecoveryMode();
         }
     }
 
-    public void leave() {
-//        try {
-            chats.remove(ui.getSelectedContact());
-            ui.removeSelectedContact();
-//            bulletinBoard.leave(username);
-//        } catch(RemoteException ex) {
-//            ui.showErrorDialog("Action not executed, server down!");
-//            ui.setButtonsEnabled(true, false, false, false, false, false);
-//            ui.setRecoveryMode();
-//        }
+    public void setRecoveryMode() {
+        ui.showErrorDialog("Connection to server was lost, please restart and recover when back online.");
+        ui.setButtonsEnabled(true, false, false, false, false, false);
+        ui.setRecoveryMode();
+    }
+
+    public void leave(int index) {
+        try {
+            chats.get(index).leave();
+            chats.get(index).add(new ChatMessage("SYSTEM", "You have left the chat"));
+            chats.remove(index);
+            ui.removeContact(index);
+            saveState();
+        } catch(RemoteException ex) {
+            setRecoveryMode();
+        }
     }
 
     public static void connectToRMIServer() throws RemoteException {
@@ -112,9 +114,7 @@ public class Client extends UnicastRemoteObject {
             chat.sendMessage(new ChatMessage(username, text));
             saveState();
         } catch(RemoteException e) {
-            ui.showErrorDialog("Action not executed, server down!");
-            ui.setButtonsEnabled(true, false, false, false, false, false);
-            ui.setRecoveryMode();
+            setRecoveryMode();
         }
     }
 

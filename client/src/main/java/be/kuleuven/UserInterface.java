@@ -33,14 +33,26 @@ public class UserInterface extends JFrame {
     private JScrollPane jscrollpane;
     private JButton restoreButton;
     private DefaultListModel<String> contactListModel;
-    private final Client client;
+    private Client client;
     private boolean recoveryMode = false;
 
     public UserInterface(String title) {
         super(title);
-
         String username = "";
-        while (username.isEmpty()) username = JOptionPane.showInputDialog("Please fill in your usename: ");
+
+        while (username.isEmpty()) {
+            Object[] options = {" Enter Username ", " Restore "};
+            if(!recoveryMode) {
+                int choice = JOptionPane.showOptionDialog(null, "Please fill in your username or choose Restore:",
+                        "Username", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+
+                if (choice == 1)
+                    recoveryMode = true;
+            }
+
+            username = JOptionPane.showInputDialog("Please fill in your" + (recoveryMode ? " old " : " ") + "username: ");
+        }
+
         try {
             client = Client.createInstance(username, this);
         } catch(RemoteException ex) {
@@ -158,7 +170,7 @@ public class UserInterface extends JFrame {
     }
 
     public void handleLeaveButtonClick() {
-        client.leave();
+        client.leave(getSelectedContact());
     }
 
     public void handleSendMessageButtonClick() throws IOException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
@@ -239,5 +251,9 @@ public class UserInterface extends JFrame {
         try {
             userList.setSelectedValue(i, false);
         } catch(Exception e) {}
+    }
+
+    public void removeContact(int index) {
+        contactListModel.remove(index);
     }
 }

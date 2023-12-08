@@ -21,6 +21,7 @@ public abstract class Connection {
     protected ConnectionInfo ab;
     protected ConnectionInfo ba;
     protected final BulletinBoardInterface bulletinBoard;
+    protected Thread fetcher;
 
     public Connection(BulletinBoardInterface bulletinBoard) {
         this.bulletinBoard = bulletinBoard;
@@ -88,5 +89,9 @@ public abstract class Connection {
     protected void toJSONObject(JSONObject output) {
         output.put("ab", ab.toJSONObject());
         output.put("ba", ba.toJSONObject());
+    }
+
+    public void stopFetcher() {
+        fetcher.interrupt();
     }
 }

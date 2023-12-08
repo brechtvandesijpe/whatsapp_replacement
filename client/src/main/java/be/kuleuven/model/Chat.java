@@ -117,4 +117,22 @@ public class Chat {
     public int getId() {
         return this.id;
     }
+
+    public void leave() throws RemoteException {
+        synchronized(this) {
+            for (ConnectionHandler connectionHandler : connectionHandlers) {
+                try {
+                    connectionHandler.leave();
+                } catch(Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+        }
+    }
+
+    public void stopConnection(ConnectionHandler connectionHandler) {
+        synchronized(this) {
+            connectionHandlers.remove(connectionHandler);
+        }
+    }
 }
