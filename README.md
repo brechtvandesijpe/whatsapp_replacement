@@ -6,7 +6,7 @@ Please check our latest release for the newest version.
 
 # Dependencies
 The dependencies used are:
-- org.json:json:20231013
+- from maven org.json:json:20231013
 
 # Authors
 Reinout Annaert
